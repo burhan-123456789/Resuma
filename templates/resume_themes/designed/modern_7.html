@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {{ resume_data.personal_info.full_name if resume_data.personal_info else
+      'Resume' }}
+    </title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Georgia", "Times New Roman", serif;
+        line-height: 1.6;
+        background: #f5e6d3;
+        color: #2c1810;
+      }
+
+      .resume {
+        max-width: 900px;
+        margin: 2rem auto;
+        background: #fffef7;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        position: relative;
+      }
+
+      /* Elegant Border */
+      .resume::before {
+        content: "";
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
+        border: 1px solid #d4a574;
+        pointer-events: none;
+      }
+
+      /* Header */
+      .header {
+        text-align: center;
+        padding: 3rem 2rem 2rem;
+        border-bottom: 2px solid #d4a574;
+        margin-bottom: 2rem;
+      }
+
+      .name {
+        font-size: 3rem;
+        font-weight: normal;
+        letter-spacing: 3px;
+        color: #2c1810;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+      }
+
+      .title {
+        font-size: 1.1rem;
+        font-style: italic;
+        color: #8b6914;
+        margin-bottom: 1rem;
+      }
+
+      .contact {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 1rem;
+      }
+
+      /* Content */
+      .content {
+        padding: 0 2rem 2rem;
+      }
+
+      .section {
+        margin-bottom: 2rem;
+      }
+
+      .section-title {
+        font-size: 1.2rem;
+        font-weight: normal;
+        letter-spacing: 2px;
+        color: #8b6914;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px dotted #d4a574;
+        text-transform: uppercase;
+      }
+
+      /* Experience */
+      .experience-item,
+      .education-item {
+        margin-bottom: 1.5rem;
+      }
+
+      .item-header {
+        margin-bottom: 0.5rem;
+      }
+
+      .item-title {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #2c1810;
+      }
+
+      .item-subtitle {
+        font-style: italic;
+        color: #8b6914;
+      }
+
+      .item-date {
+        font-size: 0.8rem;
+        color: #999;
+        margin-top: 0.25rem;
+      }
+
+      .item-description {
+        font-size: 0.9rem;
+        color: #444;
+        margin-top: 0.5rem;
+        font-family: "Georgia", serif;
+      }
+
+      /* Skills */
+      .skills-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .skill-item {
+        font-style: italic;
+        color: #2c1810;
+      }
+
+      .skill-item::before {
+        content: "✦ ";
+        color: #d4a574;
+      }
+
+      /* Projects */
+      .project-item {
+        margin-bottom: 1rem;
+        padding-left: 1rem;
+        border-left: 2px solid #d4a574;
+      }
+
+      .project-title {
+        font-weight: bold;
+        color: #2c1810;
+      }
+
+      @media print {
+        body {
+          background: white;
+        }
+
+        .resume::before {
+          display: none;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .content {
+          padding: 0 1rem 1rem;
+        }
+
+        .name {
+          font-size: 2rem;
+        }
+
+        .contact {
+          gap: 0.75rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="resume">
+      {% if resume_data.personal_info %}
+      <div class="header">
+        <div class="name">{{ resume_data.personal_info.full_name }}</div>
+        {% if resume_data.personal_info.job_title %}
+        <div class="title">{{ resume_data.personal_info.job_title }}</div>
+        {% endif %}
+        <div class="contact">
+          {% if resume_data.personal_info.email %}{{
+          resume_data.personal_info.email }}{% endif %} {% if
+          resume_data.personal_info.phone %} | {{
+          resume_data.personal_info.phone }}{% endif %} {% if
+          resume_data.personal_info.address %} | {{
+          resume_data.personal_info.address }}{% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="content">
+        {% if resume_data.summaries %}
+        <div class="section">
+          <h3 class="section-title">Philosophy</h3>
+          {% for summary in resume_data.summaries %}
+          <div class="item-description">{{ summary.content }}</div>
+          {% endfor %}
+        </div>
+        {% endif %} {% if resume_data.experiences %}
+        <div class="section">
+          <h3 class="section-title">Professional Journey</h3>
+          {% for exp in resume_data.experiences %}
+          <div class="experience-item">
+            <div class="item-header">
+              <div class="item-title">{{ exp.position }}</div>
+              <div class="item-subtitle">{{ exp.company }}</div>
+              <div class="item-date">
+                {{ exp.start_date.strftime('%b %Y') if exp.start_date else '' }}
+                - {{ 'Present' if exp.current else (exp.end_date.strftime('%b
+                %Y') if exp.end_date else '') }}
+              </div>
+            </div>
+            <div class="item-description">{{ exp.description }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %} {% if resume_data.education %}
+        <div class="section">
+          <h3 class="section-title">Education</h3>
+          {% for edu in resume_data.education %}
+          <div class="education-item">
+            <div class="item-title">
+              {{ edu.degree }}{% if edu.field_of_study %} in {{
+              edu.field_of_study }}{% endif %}
+            </div>
+            <div class="item-subtitle">{{ edu.institution }}</div>
+            <div class="item-date">
+              {{ edu.start_date.strftime('%Y') if edu.start_date else '' }} - {{
+              edu.end_date.strftime('%Y') if edu.end_date else 'Present' }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %} {% if resume_data.skills %}
+        <div class="section">
+          <h3 class="section-title">Craft & Skills</h3>
+          <div class="skills-list">
+            {% for skill in resume_data.skills %}
+            <span class="skill-item">{{ skill.name }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %} {% if resume_data.projects %}
+        <div class="section">
+          <h3 class="section-title">Notable Works</h3>
+          {% for project in resume_data.projects %}
+          <div class="project-item">
+            <div class="project-title">{{ project.name }}</div>
+            <div class="item-description">{{ project.description }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </body>
+</html>
