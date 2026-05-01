@@ -1,0 +1,426 @@
+{% extends "base.html" %} 
+{% block title %}PDF Preview - {{ resume.title }}{% endblock %} 
+{% block extra_css %}
+<style>
+  .pdf-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .pdf-controls {
+    background: var(--white);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .pdf-name-section {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .pdf-name-section .form-group {
+    flex: 1;
+    margin-bottom: 0;
+    min-width: 200px;
+  }
+
+  .pdf-name-section label {
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+
+  .form-text {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.25rem;
+  }
+
+  .pdf-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+
+  /* Button Styles */
+  .btn-primary, .btn-secondary, .btn-success {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .btn-secondary {
+    background: #6c757d;
+    color: white;
+  }
+
+  .btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+  }
+
+  .btn-primary:hover, .btn-secondary:hover, .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Info Message */
+  .info-message {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .info-message i {
+    font-size: 1.25rem;
+  }
+
+  /* Preview Frame */
+  .pdf-viewer {
+    background: var(--white);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  .pdf-iframe {
+    width: 100%;
+    height: 800px;
+    border: none;
+  }
+
+  /* Loading Spinner */
+  .loading-pdf {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 800px;
+    background: #f8f9fa;
+  }
+
+  .loading-pdf i {
+    font-size: 2rem;
+    color: #667eea;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .pdf-name-section {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .pdf-actions {
+      flex-direction: column;
+    }
+    
+    .btn-primary, .btn-secondary, .btn-success {
+      justify-content: center;
+    }
+    
+    .pdf-iframe {
+      height: 500px;
+    }
+  }
+
+  /* Custom Alert Modal */
+  .custom-alert {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+  }
+
+  .custom-alert.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .custom-alert-content {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.3s;
+  }
+
+  .custom-alert.show .custom-alert-content {
+    transform: scale(1);
+  }
+
+  .custom-alert-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .custom-alert-icon.success { color: #10b981; }
+  .custom-alert-icon.warning { color: #f59e0b; }
+  .custom-alert-icon.error { color: #ef4444; }
+  .custom-alert-icon.info { color: #667eea; }
+
+  .custom-alert-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #1f2937;
+  }
+
+  .custom-alert-message {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+
+  .custom-alert-buttons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+
+  .custom-alert-btn {
+    padding: 0.5rem 1.5rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+  }
+
+  .custom-alert-btn:hover {
+    background: #5b3cc4;
+    transform: translateY(-2px);
+  }
+</style>
+{% endblock %} 
+
+{% block page_title %}PDF Preview & Export{% endblock %} 
+
+{% block content %}
+<div class="pdf-container">
+  <div class="pdf-controls">
+    <div class="info-message">
+      <i class="fas fa-info-circle"></i>
+      <span>Your resume is ready. Use the button below to save as PDF.</span>
+    </div>
+
+    <div class="pdf-name-section">
+      <div class="form-group">
+        <label for="pdfName">PDF File Name</label>
+        <input
+          type="text"
+          id="pdfName"
+          value="{{ resume.pdf_name or resume.title }}"
+          placeholder="Enter PDF name without extension"
+          class="form-control"
+        />
+        <small class="form-text">The name that will appear when you download the PDF</small>
+      </div>
+      <button class="btn-primary" onclick="savePdfName()">
+        <i class="fas fa-save"></i> Save Name
+      </button>
+    </div>
+
+    <div class="pdf-actions">
+      <a href="{{ url_for('edit_resume', resume_id=resume.id) }}" class="btn-secondary">
+        <i class="fas fa-edit"></i> Back to Editor
+      </a>
+      <button onclick="printAsPDF()" class="btn-success">
+        <i class="fas fa-print"></i> Print / Save as PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="pdf-viewer">
+    <div id="pdfLoading" class="loading-pdf">
+      <i class="fas fa-spinner"></i>
+      <span style="margin-top: 1rem;">Loading preview...</span>
+    </div>
+    <iframe
+      id="pdfFrame"
+      class="pdf-iframe"
+      src="{{ url_for('print_view', resume_id=resume.id) }}"
+      onload="hideLoading()"
+      style="display: none;"
+    ></iframe>
+  </div>
+</div>
+
+<!-- Custom Alert Modal -->
+<div id="customAlert" class="custom-alert">
+  <div class="custom-alert-content">
+    <div class="custom-alert-icon" id="alertIcon"></div>
+    <div class="custom-alert-title" id="alertTitle"></div>
+    <div class="custom-alert-message" id="alertMessage"></div>
+    <div class="custom-alert-buttons" id="alertButtons">
+      <button class="custom-alert-btn" id="alertConfirmBtn">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let saveTimeout;
+
+  function showCustomAlert(title, message, type = 'info', showConfirm = true, onConfirm = null) {
+    const alertModal = document.getElementById('customAlert');
+    const alertIcon = document.getElementById('alertIcon');
+    const alertTitle = document.getElementById('alertTitle');
+    const alertMessage = document.getElementById('alertMessage');
+    const alertButtons = document.getElementById('alertButtons');
+    
+    let iconHtml = '';
+    let iconClass = '';
+    switch(type) {
+        case 'success':
+            iconHtml = '<i class="fas fa-check-circle"></i>';
+            iconClass = 'success';
+            break;
+        case 'warning':
+            iconHtml = '<i class="fas fa-exclamation-triangle"></i>';
+            iconClass = 'warning';
+            break;
+        case 'error':
+            iconHtml = '<i class="fas fa-times-circle"></i>';
+            iconClass = 'error';
+            break;
+        default:
+            iconHtml = '<i class="fas fa-info-circle"></i>';
+            iconClass = 'info';
+    }
+    
+    alertIcon.innerHTML = iconHtml;
+    alertIcon.className = `custom-alert-icon ${iconClass}`;
+    alertTitle.textContent = title;
+    alertMessage.textContent = message;
+    
+    alertButtons.innerHTML = '';
+    
+    const okBtn = document.createElement('button');
+    okBtn.textContent = showConfirm ? 'Confirm' : 'OK';
+    okBtn.className = 'custom-alert-btn';
+    okBtn.onclick = () => {
+      closeCustomAlert();
+      if (onConfirm) onConfirm();
+    };
+    alertButtons.appendChild(okBtn);
+    
+    alertModal.classList.add('show');
+  }
+
+  function closeCustomAlert() {
+    const alertModal = document.getElementById('customAlert');
+    alertModal.classList.remove('show');
+  }
+
+  async function savePdfName() {
+      const pdfName = document.getElementById('pdfName').value;
+      const resumeId = {{ resume.id }};
+
+      try {
+          const response = await fetch(`/resume/${resumeId}/save-pdf-name`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ pdf_name: pdfName })
+          });
+
+          const result = await response.json();
+          if (result.success) {
+              showCustomAlert('Success', 'PDF name saved successfully!', 'success', false);
+          }
+      } catch (error) {
+          console.error('Failed to save PDF name:', error);
+          showCustomAlert('Error', 'Failed to save PDF name', 'error', false);
+      }
+  }
+
+  function printAsPDF() {
+      const pdfName = document.getElementById('pdfName').value;
+      const resumeId = {{ resume.id }};
+      
+      // Save the PDF name first
+      fetch(`/resume/${resumeId}/save-pdf-name`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ pdf_name: pdfName })
+      }).then(() => {
+          // Open the print view in a new tab for better PDF generation
+          const printWindow = window.open(`/resume/${resumeId}/print-view`, '_blank');
+          if (!printWindow) {
+              showCustomAlert('Popup Blocked', 'Please allow popups or use Ctrl+P to print', 'warning', false);
+          } else {
+              showCustomAlert('Print Ready', 'The print dialog will open in the new tab. Choose "Save as PDF" to download.', 'success', false);
+          }
+      }).catch(error => {
+          console.error('Failed to save PDF name:', error);
+          // Still try to open print view
+          window.open(`/resume/${resumeId}/print-view`, '_blank');
+      });
+  }
+
+  function hideLoading() {
+      const loadingDiv = document.getElementById('pdfLoading');
+      const iframe = document.getElementById('pdfFrame');
+      
+      if (loadingDiv && iframe) {
+          loadingDiv.style.display = 'none';
+          iframe.style.display = 'block';
+      }
+  }
+</script>
+{% endblock %}

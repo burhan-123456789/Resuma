@@ -1,0 +1,1026 @@
+{% extends "base.html" %} {% block title %}Resume Templates - Resuma{% endblock
+%} {% block page_title %}Resume Templates{% endblock %} {% block content %}
+<div class="templates-container">
+  <!-- Custom Alert Modal -->
+  <div id="customAlert" class="custom-alert">
+    <div class="custom-alert-content">
+      <div class="custom-alert-icon" id="alertIcon"></div>
+      <div class="custom-alert-title" id="alertTitle"></div>
+      <div class="custom-alert-message" id="alertMessage"></div>
+      <div class="custom-alert-buttons" id="alertButtons">
+        <button class="custom-alert-btn" id="alertConfirmBtn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme Preview Modal -->
+  <div id="themePreviewModal" class="theme-preview-modal">
+    <div class="theme-preview-modal-content">
+      <div class="theme-preview-modal-header">
+        <h3 id="modalThemeTitle">Theme Preview</h3>
+        <button class="modal-close" onclick="closeThemePreviewModal()">
+          &times;
+        </button>
+      </div>
+      <div class="theme-preview-modal-body">
+        <div class="preview-loading-spinner" id="previewLoadingSpinner">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Loading preview...</p>
+        </div>
+        <iframe
+          id="themePreviewFrame"
+          class="theme-preview-frame"
+          style="display: none"
+        ></iframe>
+      </div>
+      <div class="theme-preview-modal-footer">
+        <button class="btn-modal-cancel" onclick="closeThemePreviewModal()">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button
+          class="btn-modal-use"
+          id="modalUseThemeBtn"
+          onclick="useSelectedTheme()"
+        >
+          <i class="fas fa-check"></i> Use This Theme
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back to Editor Button -->
+  <div class="back-to-editor" id="backToEditorBtn" style="display: none">
+    <a href="#" onclick="goBackToEditor()" class="btn-back">
+      <i class="fas fa-arrow-left"></i> Back to Resume Editor
+    </a>
+  </div>
+
+  <!-- Templates Header -->
+  <div class="templates-header">
+    <div class="header-content">
+      <h1>Choose Your Perfect Resume Template</h1>
+      <p>
+        Browse our collection of professional, ATS-friendly templates designed
+        to help you stand out
+      </p>
+    </div>
+
+    <!-- Template Filter -->
+    <div class="template-filters">
+      <button class="filter-btn active" data-filter="all">
+        <i class="fas fa-th-large"></i> All Templates
+      </button>
+      <button class="filter-btn" data-filter="designed">
+        <i class="fas fa-palette"></i> Designed Themes
+      </button>
+      <button class="filter-btn" data-filter="ats">
+        <i class="fas fa-robot"></i> ATS-Friendly
+      </button>
+    </div>
+  </div>
+
+  <!-- Designed Themes Section -->
+  <div class="theme-category" id="designed-section">
+    <div class="category-header">
+      <h2><i class="fas fa-palette"></i> Designed Themes</h2>
+      <p>Modern, creative designs perfect for showcasing your personality</p>
+    </div>
+
+    <div class="themes-grid">
+      {% for i in range(1, 11) %}
+      <div
+        class="theme-card"
+        data-theme="modern_{{ i }}"
+        data-category="designed"
+        onclick="openThemePreviewModal('modern_{{ i }}', 'designed')"
+      >
+        <div class="theme-preview">
+          <div class="theme-preview-img theme-live-preview modern-{{ i }}-preview">
+            <!-- Live resume preview content inserted via JS -->
+            <div class="mini-resume-preview" id="preview-modern-{{ i }}">
+              <div class="mini-resume-loading">Loading preview...</div>
+            </div>
+          </div>
+        </div>
+        <div class="theme-info">
+          <h4>Modern {{ i }}</h4>
+          <div class="theme-tags">
+            <span class="tag">Creative</span>
+            <span class="tag">Professional</span>
+            <span class="tag">Modern</span>
+          </div>
+          <div class="theme-actions">
+            <button
+              class="btn-preview"
+              onclick="event.stopPropagation(); openThemePreviewModal('modern_{{ i }}', 'designed')"
+            >
+              <i class="fas fa-eye"></i> Preview
+            </button>
+            <button
+              class="btn-use"
+              onclick="event.stopPropagation(); useTemplate('modern_{{ i }}', 'designed')"
+            >
+              <i class="fas fa-check"></i> Use Template
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ATS-Friendly Themes Section -->
+  <div class="theme-category" id="ats-section">
+    <div class="category-header">
+      <h2><i class="fas fa-robot"></i> ATS-Friendly Themes</h2>
+      <p>Clean, simple designs optimized for Applicant Tracking Systems</p>
+    </div>
+
+    <div class="themes-grid">
+      {% for i in range(1, 11) %}
+      <div
+        class="theme-card"
+        data-theme="ats_{{ i }}"
+        data-category="ats"
+        onclick="openThemePreviewModal('ats_{{ i }}', 'ats')"
+      >
+        <div class="theme-preview">
+          <div class="theme-preview-img theme-live-preview ats-{{ i }}-preview">
+            <div class="mini-resume-preview" id="preview-ats-{{ i }}">
+              <div class="mini-resume-loading">Loading preview...</div>
+            </div>
+          </div>
+        </div>
+        <div class="theme-info">
+          <h4>ATS-Friendly {{ i }}</h4>
+          <div class="theme-tags">
+            <span class="tag">ATS Optimized</span>
+            <span class="tag">Clean</span>
+            <span class="tag">Professional</span>
+          </div>
+          <div class="theme-actions">
+            <button
+              class="btn-preview"
+              onclick="event.stopPropagation(); openThemePreviewModal('ats_{{ i }}', 'ats')"
+            >
+              <i class="fas fa-eye"></i> Preview
+            </button>
+            <button
+              class="btn-use"
+              onclick="event.stopPropagation(); useTemplate('ats_{{ i }}', 'ats')"
+            >
+              <i class="fas fa-check"></i> Use Template
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- CTA Section -->
+  <div class="templates-cta">
+    <h3>Ready to create your professional resume?</h3>
+    <p>Choose a template and start building your resume in minutes</p>
+    <a href="{{ url_for('new_resume') }}" class="btn-primary">
+      <i class="fas fa-plus"></i> Create New Resume
+    </a>
+  </div>
+</div>
+
+<style>
+  .templates-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+
+  /* Custom Alert Modal */
+  .custom-alert {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+  }
+
+  .custom-alert.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .custom-alert-content {
+    background: var(--white);
+    border-radius: 15px;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.3s;
+  }
+
+  .custom-alert.show .custom-alert-content {
+    transform: scale(1);
+  }
+
+  /* Theme Preview Modal */
+  .theme-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+  }
+
+  .theme-preview-modal.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .theme-preview-modal-content {
+    background: var(--white);
+    border-radius: 15px;
+    width: 90%;
+    max-width: 1000px;
+    height: 85vh;
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.9);
+    transition: transform 0.3s;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .theme-preview-modal.show .theme-preview-modal-content {
+    transform: scale(1);
+  }
+
+  .theme-preview-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 15px 15px 0 0;
+  }
+
+  .theme-preview-modal-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 1.25rem;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: white;
+    transition: all 0.3s;
+  }
+
+  .theme-preview-modal-body {
+    flex: 1;
+    overflow: auto;
+    background: var(--gray-50);
+    position: relative;
+  }
+
+  .theme-preview-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: white;
+  }
+
+  /* Back to Editor Button */
+  .back-to-editor {
+    margin-bottom: 1rem;
+  }
+
+  .btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--gray-100);
+    color: var(--gray-700);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s;
+  }
+
+  /* Header */
+  .templates-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .templates-header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--gray-800);
+  }
+
+  /* Template Filters */
+  .template-filters {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 0.75rem 1.5rem;
+    background: var(--white);
+    border: 2px solid var(--gray-200);
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .filter-btn.active {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    border-color: transparent;
+  }
+
+  /* Theme Categories */
+  .theme-category {
+    margin-bottom: 3rem;
+  }
+
+  .category-header {
+    margin-bottom: 1.5rem;
+  }
+
+  /* Themes Grid */
+  .themes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+  }
+
+  /* Theme Card */
+  .theme-card {
+    background: var(--white);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .theme-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  }
+
+  .theme-preview {
+    height: 280px;
+    overflow: hidden;
+    position: relative;
+    background: #f8f9fa;
+  }
+
+  .theme-preview-img {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    overflow-y: auto;
+    padding: 12px;
+  }
+
+  /* Mini resume preview styling */
+  .mini-resume-preview {
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    font-size: 10px;
+    line-height: 1.4;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .mini-resume-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6c757d;
+    font-size: 11px;
+  }
+
+  /* Scrollbar for mini preview */
+  .mini-resume-preview::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .mini-resume-preview::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  .mini-resume-preview::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+
+  /* Theme Info */
+  .theme-info {
+    padding: 1rem;
+  }
+
+  .theme-info h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    color: var(--gray-800);
+  }
+
+  .theme-tags {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--gray-100);
+    border-radius: 12px;
+    color: var(--gray-600);
+  }
+
+  .theme-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-preview,
+  .btn-use {
+    flex: 1;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+  }
+
+  .btn-preview {
+    background: var(--gray-100);
+    color: var(--gray-700);
+  }
+
+  .btn-use {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+  }
+
+  /* CTA Section */
+  .templates-cta {
+    text-align: center;
+    padding: 3rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 15px;
+    color: white;
+    margin-top: 2rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .themes-grid {
+      grid-template-columns: 1fr;
+    }
+    .theme-preview {
+      height: 320px;
+    }
+  }
+
+  /* Hide original gradient backgrounds, we'll use live previews */
+  .theme-preview-img.modern-1-preview,
+  .theme-preview-img.modern-2-preview,
+  .theme-preview-img.modern-3-preview,
+  .theme-preview-img.modern-4-preview,
+  .theme-preview-img.modern-5-preview,
+  .theme-preview-img.modern-6-preview,
+  .theme-preview-img.modern-7-preview,
+  .theme-preview-img.modern-8-preview,
+  .theme-preview-img.modern-9-preview,
+  .theme-preview-img.modern-10-preview,
+  .theme-preview-img.ats-1-preview,
+  .theme-preview-img.ats-2-preview,
+  .theme-preview-img.ats-3-preview,
+  .theme-preview-img.ats-4-preview,
+  .theme-preview-img.ats-5-preview,
+  .theme-preview-img.ats-6-preview,
+  .theme-preview-img.ats-7-preview,
+  .theme-preview-img.ats-8-preview,
+  .theme-preview-img.ats-9-preview,
+  .theme-preview-img.ats-10-preview {
+    background: #f8f9fa;
+    border: none;
+  }
+
+    /* Custom Alert Modal Button Styles */
+  .custom-alert-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+  
+  .custom-alert-icon.success {
+    color: #10b981;
+  }
+  
+  .custom-alert-icon.warning {
+    color: #f59e0b;
+  }
+  
+  .custom-alert-icon.error {
+    color: #ef4444;
+  }
+  
+  .custom-alert-icon.info {
+    color: #3b82f6;
+  }
+  
+  .custom-alert-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--gray-800);
+  }
+  
+  .custom-alert-message {
+    color: var(--gray-600);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+  
+  .custom-alert-buttons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+  
+  .custom-alert-btn {
+    padding: 0.5rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+  }
+  
+  .custom-alert-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .custom-alert-btn.cancel {
+    background: var(--gray-200);
+    color: var(--gray-700);
+  }
+  
+  .custom-alert-btn.cancel:hover {
+    background: var(--gray-300);
+  }
+  
+  /* Theme Preview Modal Footer Buttons */
+  .theme-preview-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--gray-200);
+    background: var(--gray-50);
+    border-radius: 0 0 15px 15px;
+  }
+  
+  .btn-modal-cancel {
+    padding: 0.5rem 1.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s;
+    background: white;
+    color: var(--gray-700);
+  }
+  
+  .btn-modal-cancel:hover {
+    background: var(--gray-100);
+    border-color: var(--gray-400);
+  }
+  
+  .btn-modal-use {
+    padding: 0.5rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+  }
+  
+  .btn-modal-use:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Preview Loading Spinner */
+  .preview-loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  
+  .preview-loading-spinner i {
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+  }
+  
+  .preview-loading-spinner p {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+  }
+</style>
+
+<script>
+  // Mock resume data for previews
+  const mockResumeData = {
+    personal_info: {
+      full_name: 'Emma Chen',
+      first_name: 'Emma',
+      last_name: 'Chen',
+      job_title: 'Senior Product Manager',
+      email: 'emma.chen@example.com',
+      phone: '+1 (555) 234-5678',
+      address: 'San Francisco, CA'
+    },
+    summaries: [
+      { content: 'Strategic product leader with 7+ years of experience driving product growth and leading cross-functional teams. Proven track record of launching successful B2B and B2C products.' }
+    ],
+    experiences: [
+      {
+        position: 'Senior Product Manager',
+        company: 'InnovateTech',
+        location: 'Remote',
+        start_date_display: 'Jan 2021',
+        end_date_display: 'Present',
+        current: true,
+        description: 'Lead product strategy for flagship platform, increased MRR by 40% year-over-year.'
+      },
+      {
+        position: 'Product Manager',
+        company: 'DigitalSolutions',
+        location: 'New York, NY',
+        start_date_display: 'Jun 2018',
+        end_date_display: 'Dec 2020',
+        current: false,
+        description: 'Managed roadmap for 3 core products, launched features used by 500k+ users.'
+      }
+    ],
+    education: [
+      {
+        degree: 'MBA',
+        field_of_study: 'Technology Management',
+        institution: 'Stanford University',
+        start_date_display: '2016',
+        end_date_display: '2018'
+      },
+      {
+        degree: 'BS Computer Science',
+        field_of_study: 'Software Engineering',
+        institution: 'UC Berkeley',
+        start_date_display: '2012',
+        end_date_display: '2016'
+      }
+    ],
+    skills: [
+      { name: 'Product Strategy', category: 'Management' },
+      { name: 'Agile Methodology', category: 'Process' },
+      { name: 'Data Analytics', category: 'Technical' },
+      { name: 'User Research', category: 'UX' },
+      { name: 'Roadmap Planning', category: 'Strategy' }
+    ],
+    projects: [
+      { name: 'AI Analytics Dashboard', description: 'Led development of real-time analytics platform.', technologies: 'React, Python, AWS' },
+      { name: 'Mobile App Redesign', description: 'Increased user engagement by 65% through redesign.', technologies: 'Figma, iOS, Android' }
+    ],
+    certifications: [
+      { name: 'Certified Scrum Product Owner', issuer: 'Scrum Alliance', issue_date_display: '2020' }
+    ],
+    languages: [
+      { name: 'English', proficiency: 'Native' },
+      { name: 'Mandarin', proficiency: 'Professional Working' }
+    ],
+    social_links: [
+      { platform: 'LinkedIn', url: 'linkedin.com/in/emma' },
+      { platform: 'GitHub', url: 'github.com/emma' }
+    ]
+  };
+
+  // Theme-specific HTML generators (simplified but styled representations)
+  function generateModernPreview(themeNumber) {
+    // Different color schemes for each modern theme
+    const colors = {
+      1: { primary: '#6366f1', secondary: '#8b5cf6', accent: '#a78bfa' },
+      2: { primary: '#ec4899', secondary: '#f43f5e', accent: '#fb7185' },
+      3: { primary: '#06b6d4', secondary: '#3b82f6', accent: '#60a5fa' },
+      4: { primary: '#10b981', secondary: '#34d399', accent: '#6ee7b7' },
+      5: { primary: '#f59e0b', secondary: '#f97316', accent: '#fbbf24' },
+      6: { primary: '#8b5cf6', secondary: '#a78bfa', accent: '#c4b5fd' },
+      7: { primary: '#14b8a6', secondary: '#2dd4bf', accent: '#5eead4' },
+      8: { primary: '#ef4444', secondary: '#f87171', accent: '#fca5a5' },
+      9: { primary: '#3b82f6', secondary: '#60a5fa', accent: '#93c5fd' },
+      10: { primary: '#d946ef', secondary: '#e879f9', accent: '#f0abfc' }
+    };
+    const c = colors[themeNumber] || colors[1];
+    
+    return `
+      <div style="font-family: 'Inter', sans-serif; padding: 14px; height: 100%; background: white; border-radius: 8px;">
+        <div style="border-bottom: 3px solid ${c.primary}; padding-bottom: 8px; margin-bottom: 10px;">
+          <div style="font-weight: 700; font-size: 16px; color: #1f2937;">${mockResumeData.personal_info.full_name}</div>
+          <div style="font-size: 10px; color: ${c.primary}; font-weight: 500;">${mockResumeData.personal_info.job_title}</div>
+        </div>
+        <div style="margin-bottom: 8px;">
+          <div style="font-weight: 600; font-size: 11px; color: ${c.primary}; margin-bottom: 4px;">Experience</div>
+          <div style="font-size: 9px;"><strong>${mockResumeData.experiences[0].position}</strong> • ${mockResumeData.experiences[0].company}</div>
+          <div style="font-size: 8px; color: #6b7280;">${mockResumeData.experiences[0].start_date_display} - ${mockResumeData.experiences[0].end_date_display}</div>
+        </div>
+        <div style="margin-bottom: 8px;">
+          <div style="font-weight: 600; font-size: 11px; color: ${c.primary}; margin-bottom: 4px;">Education</div>
+          <div style="font-size: 9px;"><strong>${mockResumeData.education[0].degree}</strong><br>${mockResumeData.education[0].institution}</div>
+        </div>
+        <div>
+          <div style="font-weight: 600; font-size: 11px; color: ${c.primary}; margin-bottom: 4px;">Skills</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+            ${mockResumeData.skills.slice(0,3).map(s => `<span style="background: ${c.secondary}20; color: ${c.primary}; padding: 2px 6px; border-radius: 10px; font-size: 8px;">${s.name}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function generateATSPreview(themeNumber) {
+    // Clean, minimal ATS-friendly styles
+    return `
+      <div style="font-family: 'Inter', sans-serif; padding: 14px; height: 100%; background: white; border-radius: 8px; border-left: 3px solid #2c3e50;">
+        <div style="margin-bottom: 10px;">
+          <div style="font-weight: 700; font-size: 15px; color: #111827;">${mockResumeData.personal_info.full_name}</div>
+          <div style="font-size: 9px; color: #4b5563;">${mockResumeData.personal_info.job_title}</div>
+          <div style="font-size: 8px; color: #6b7280; margin-top: 4px;">${mockResumeData.personal_info.email} | ${mockResumeData.personal_info.phone}</div>
+        </div>
+        <div style="margin-bottom: 8px;">
+          <hr style="margin: 6px 0; border-color: #e5e7eb;">
+          <div style="font-weight: 600; font-size: 10px; color: #374151;">WORK EXPERIENCE</div>
+          <div style="font-size: 9px; margin-top: 4px;"><strong>${mockResumeData.experiences[0].position}</strong> | ${mockResumeData.experiences[0].company}</div>
+          <div style="font-size: 8px; color: #6b7280;">${mockResumeData.experiences[0].start_date_display} - ${mockResumeData.experiences[0].end_date_display}</div>
+        </div>
+        <div style="margin-bottom: 8px;">
+          <div style="font-weight: 600; font-size: 10px; color: #374151;">EDUCATION</div>
+          <div style="font-size: 9px;">${mockResumeData.education[0].degree}, ${mockResumeData.education[0].institution}</div>
+        </div>
+        <div>
+          <div style="font-weight: 600; font-size: 10px; color: #374151;">SKILLS</div>
+          <div style="font-size: 8px; color: #4b5563;">${mockResumeData.skills.slice(0,4).map(s => s.name).join(' • ')}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Function to render all card previews
+  function renderAllCardPreviews() {
+    // Designed themes (modern_1 to modern_10)
+    for (let i = 1; i <= 10; i++) {
+      const previewContainer = document.getElementById(`preview-modern-${i}`);
+      if (previewContainer) {
+        previewContainer.innerHTML = generateModernPreview(i);
+      }
+    }
+    
+    // ATS themes (ats_1 to ats_10)
+    for (let i = 1; i <= 10; i++) {
+      const previewContainer = document.getElementById(`preview-ats-${i}`);
+      if (previewContainer) {
+        previewContainer.innerHTML = generateATSPreview(i);
+      }
+    }
+  }
+
+  // Global variables for selected theme
+  let selectedTheme = null;
+  let selectedCategory = null;
+
+  // Custom Alert Function
+  function showCustomAlert(title, message, type = "info", showConfirm = true, onConfirm = null, showCancel = false, onCancel = null) {
+    const alertModal = document.getElementById("customAlert");
+    const alertIcon = document.getElementById("alertIcon");
+    const alertTitle = document.getElementById("alertTitle");
+    const alertMessage = document.getElementById("alertMessage");
+    const alertButtons = document.getElementById("alertButtons");
+
+    let iconHtml = "";
+    let iconClass = "";
+    switch (type) {
+      case "success": iconHtml = '<i class="fas fa-check-circle"></i>'; iconClass = "success"; break;
+      case "warning": iconHtml = '<i class="fas fa-exclamation-triangle"></i>'; iconClass = "warning"; break;
+      case "error": iconHtml = '<i class="fas fa-times-circle"></i>'; iconClass = "error"; break;
+      default: iconHtml = '<i class="fas fa-info-circle"></i>'; iconClass = "info";
+    }
+
+    alertIcon.innerHTML = iconHtml;
+    alertIcon.className = `custom-alert-icon ${iconClass}`;
+    alertTitle.textContent = title;
+    alertMessage.textContent = message;
+
+    alertButtons.innerHTML = "";
+
+    if (showCancel) {
+      const cancelBtn = document.createElement("button");
+      cancelBtn.textContent = "Cancel";
+      cancelBtn.className = "custom-alert-btn cancel";
+      cancelBtn.onclick = () => {
+        closeCustomAlert();
+        if (onCancel) onCancel();
+      };
+      alertButtons.appendChild(cancelBtn);
+    }
+
+    const confirmBtn = document.createElement("button");
+    confirmBtn.textContent = showConfirm ? "Confirm" : "OK";
+    confirmBtn.className = "custom-alert-btn";
+    confirmBtn.onclick = () => {
+      closeCustomAlert();
+      if (onConfirm) onConfirm();
+    };
+    alertButtons.appendChild(confirmBtn);
+
+    alertModal.classList.add("show");
+  }
+
+  function closeCustomAlert() {
+    const alertModal = document.getElementById("customAlert");
+    alertModal.classList.remove("show");
+  }
+
+  // Open Theme Preview Modal
+  async function openThemePreviewModal(theme, category) {
+    selectedTheme = theme;
+    selectedCategory = category;
+    const modal = document.getElementById("themePreviewModal");
+    const modalTitle = document.getElementById("modalThemeTitle");
+    const previewFrame = document.getElementById("themePreviewFrame");
+    const loadingSpinner = document.getElementById("previewLoadingSpinner");
+    const themeName = theme.split("_")[1];
+    const categoryName = category === "designed" ? "Modern" : "ATS-Friendly";
+    modalTitle.textContent = `${categoryName} ${themeName} - Preview`;
+    modal.classList.add("show");
+    loadingSpinner.style.display = "block";
+    previewFrame.style.display = "none";
+    
+    try {
+      const url = `/api/preview-template?theme=${theme}&category=${category}`;
+      const response = await fetch(url);
+      const html = await response.text();
+      previewFrame.srcdoc = html;
+      setTimeout(() => {
+        loadingSpinner.style.display = "none";
+        previewFrame.style.display = "block";
+      }, 500);
+    } catch (error) {
+      loadingSpinner.style.display = "none";
+      previewFrame.srcdoc = `<div style="padding:2rem;text-align:center;">Failed to load preview</div>`;
+      previewFrame.style.display = "block";
+    }
+  }
+
+  function closeThemePreviewModal() {
+    const modal = document.getElementById("themePreviewModal");
+    const previewFrame = document.getElementById("themePreviewFrame");
+    modal.classList.remove("show");
+    previewFrame.src = "about:blank";
+    selectedTheme = null;
+    selectedCategory = null;
+  }
+
+  function useSelectedTheme() {
+    if (selectedTheme && selectedCategory) {
+      closeThemePreviewModal();
+      useTemplate(selectedTheme, selectedCategory);
+    }
+  }
+
+  function useTemplate(theme, category) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const resumeId = urlParams.get("resume_id");
+    const themeName = theme.split("_")[1];
+    const categoryName = category === "designed" ? "Modern" : "ATS-Friendly";
+    
+    if (resumeId) {
+      showCustomAlert("Apply Template", `Apply "${categoryName} ${themeName}" to current resume?`, "info", true, () => {
+        window.location.href = `/resume/${resumeId}/edit?theme=${theme}&category=${category}`;
+      }, true);
+    } else {
+      showCustomAlert("Use Template", `Create new resume with "${categoryName} ${themeName}"?`, "info", true, () => {
+        sessionStorage.setItem("selectedTheme", theme);
+        sessionStorage.setItem("selectedCategory", category);
+        window.location.href = `/resume/new?theme=${theme}&category=${category}`;
+      }, true);
+    }
+  }
+
+  function goBackToEditor() {
+    const resumeId = sessionStorage.getItem("resumeToTheme");
+    if (resumeId) {
+      sessionStorage.removeItem("resumeToTheme");
+      window.location.href = `/resume/${resumeId}/edit`;
+    } else {
+      window.history.back();
+    }
+  }
+
+  // Filter functionality
+  const filterBtns = document.querySelectorAll(".filter-btn");
+  const designedSection = document.getElementById("designed-section");
+  const atsSection = document.getElementById("ats-section");
+  
+  if (filterBtns.length) {
+    filterBtns.forEach(btn => {
+      btn.addEventListener("click", function() {
+        filterBtns.forEach(b => b.classList.remove("active"));
+        this.classList.add("active");
+        const filter = this.dataset.filter;
+        if (filter === "all") {
+          if (designedSection) designedSection.style.display = "block";
+          if (atsSection) atsSection.style.display = "block";
+        } else if (filter === "designed") {
+          if (designedSection) designedSection.style.display = "block";
+          if (atsSection) atsSection.style.display = "none";
+        } else if (filter === "ats") {
+          if (designedSection) designedSection.style.display = "none";
+          if (atsSection) atsSection.style.display = "block";
+        }
+      });
+    });
+  }
+
+  // Escape key and outside click
+  document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") {
+      const modal = document.getElementById("themePreviewModal");
+      if (modal.classList.contains("show")) closeThemePreviewModal();
+    }
+  });
+  
+  document.getElementById("themePreviewModal").addEventListener("click", function(event) {
+    if (event.target === this) closeThemePreviewModal();
+  });
+
+  // Initialize
+  document.addEventListener("DOMContentLoaded", () => {
+    renderAllCardPreviews();
+    const urlParams = new URLSearchParams(window.location.search);
+    const resumeId = urlParams.get("resume_id");
+    const backButton = document.getElementById("backToEditorBtn");
+    if (resumeId && backButton) {
+      backButton.style.display = "block";
+      sessionStorage.setItem("resumeToTheme", resumeId);
+    }
+  });
+</script>
+{% endblock %}

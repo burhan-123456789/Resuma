@@ -1,0 +1,731 @@
+{% extends "base.html" %} {% block title %}Dashboard - Resuma{% endblock %} {%
+block page_title %}My Resumes{% endblock %} {% block content %}
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <a href="{{ url_for('new_resume') }}" class="btn-primary">
+      <i class="fas fa-plus"></i> Create New Resume
+    </a>
+  </div>
+
+  {% if resumes %}
+  <div class="resumes-grid">
+    {% for resume in resumes %}
+    <div class="resume-card" data-resume-id="{{ resume.id }}">
+      <!-- Resume Preview (Top Section) -->
+      <div class="resume-card-preview">
+        <div class="preview-container">
+          <iframe
+            class="resume-mini-preview"
+            srcdoc="<div class='preview-loading'><i class='fas fa-spinner fa-spin'></i><p>Loading preview...</p></div>"
+            loading="lazy"
+            title="Resume Preview"
+          ></iframe>
+        </div>
+        <div class="preview-overlay">
+          <a
+            href="{{ url_for('edit_resume', resume_id=resume.id) }}"
+            class="preview-overlay-btn"
+          >
+            <i class="fas fa-expand"></i> View Full
+          </a>
+        </div>
+      </div>
+
+      <!-- Resume Info (Bottom Section) -->
+      <div class="resume-card-content">
+        <div class="resume-card-header">
+          <h3 title="{{ resume.title }}">
+            {{ resume.title[:40] }}{% if resume.title|length > 40 %}...{% endif
+            %}
+          </h3>
+        </div>
+
+        <div class="resume-card-footer">
+          <a
+            href="{{ url_for('edit_resume', resume_id=resume.id) }}"
+            class="btn-action btn-edit"
+            title="Edit Resume"
+          >
+            <i class="fas fa-edit"></i>
+            <span>Edit</span>
+          </a>
+          <a
+            href="{{ url_for('show_templates', resume_id=resume.id) }}"
+            class="btn-action btn-theme"
+            title="Change Theme"
+          >
+            <i class="fas fa-palette"></i>
+            <span>Theme</span>
+          </a>
+          <a
+            href="{{ url_for('pdf_preview', resume_id=resume.id) }}"
+            class="btn-action btn-pdf"
+            title="PDF Preview"
+          >
+            <i class="fas fa-file-pdf"></i>
+            <span>PDF</span>
+          </a>
+          <a
+            href="{{ url_for('share_resume', resume_id=resume.id) }}"
+            class="btn-action btn-share"
+            title="Share Resume"
+          >
+            <i class="fas fa-share-alt"></i>
+            <span>Share</span>
+          </a>
+          <button
+            class="btn-action btn-delete delete-resume"
+            data-resume-id="{{ resume.id }}"
+            data-resume-title="{{ resume.title }}"
+            title="Delete Resume"
+          >
+            <i class="fas fa-trash-alt"></i>
+            <span>Delete</span>
+          </button>
+        </div>
+
+        <div class="resume-meta">
+          <span class="meta-item">
+            <i class="fas fa-calendar-alt"></i>
+            Updated: {{ resume.updated_at.strftime('%b %d, %Y') }}
+          </span>
+          <span class="meta-item">
+            <i class="fas fa-clock"></i>
+            Last edited: {{ resume.updated_at.strftime('%I:%M %p') }}
+          </span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-file-alt"></i>
+    <h3>No resumes yet</h3>
+    <p>Create your first resume to get started</p>
+    <a href="{{ url_for('new_resume') }}" class="btn-primary">
+      <i class="fas fa-plus"></i> Create New Resume
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  .dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .dashboard-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 2rem;
+  }
+
+  .resumes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .resume-card {
+    background: var(--white, #ffffff);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 500px;
+    position: relative;
+  }
+
+  .resume-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Preview Section - FIXED: Shows complete resume preview */
+  .resume-card-preview {
+    position: relative;
+    height: 260px;
+    background: #f5f5f5;
+    overflow: hidden;
+    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+    cursor: pointer;
+  }
+
+  .preview-container {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background: white;
+  }
+
+  .resume-mini-preview {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: white;
+    /* Remove transform scale - let iframe show full content with scrolling */
+  }
+
+  /* Style scrollbar for preview iframe */
+  .resume-mini-preview::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .resume-mini-preview::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  .resume-mini-preview::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+
+  .resume-mini-preview::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  .preview-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .resume-card-preview:hover .preview-overlay {
+    opacity: 1;
+  }
+
+  .preview-overlay-btn {
+    padding: 0.5rem 1rem;
+    background: white;
+    color: var(--primary, #6366f1);
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .preview-overlay-btn:hover {
+    background: var(--primary, #6366f1);
+    color: white;
+    transform: scale(1.05);
+  }
+
+  .preview-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--gray-400, #9ca3af);
+  }
+
+  .preview-loading i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .preview-loading p {
+    font-size: 0.75rem;
+  }
+
+  /* Content Section */
+  .resume-card-content {
+    padding: 0.75rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .resume-card-header {
+    margin-bottom: 0.5rem;
+  }
+
+  .resume-card-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-800, #1f2937);
+    margin: 0;
+    line-height: 1.3;
+  }
+
+  /* Footer Actions */
+  .resume-card-footer {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .btn-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.25rem;
+    background: var(--gray-50, #f9fafb);
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.7rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .btn-action i {
+    font-size: 0.7rem;
+  }
+
+  .btn-action span {
+    font-size: 0.65rem;
+  }
+
+  .btn-edit {
+    color: var(--primary, #6366f1);
+    background: rgba(99, 102, 241, 0.05);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .btn-edit:hover {
+    background: var(--primary, #6366f1);
+    color: white;
+    border-color: var(--primary, #6366f1);
+    transform: translateY(-2px);
+  }
+
+  .btn-theme {
+    color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.05);
+    border-color: rgba(139, 92, 246, 0.2);
+  }
+
+  .btn-theme:hover {
+    background: #8b5cf6;
+    color: white;
+    border-color: #8b5cf6;
+    transform: translateY(-2px);
+  }
+
+  .btn-pdf {
+    color: #ef4444;
+    background: linear-gradient(
+      135deg,
+      rgba(239, 68, 68, 0.05),
+      rgba(239, 68, 68, 0.02)
+    );
+    border-color: rgba(239, 68, 68, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-pdf::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    transition: left 0.5s ease;
+  }
+
+  .btn-pdf:hover::before {
+    left: 100%;
+  }
+
+  .btn-pdf:hover {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border-color: #ef4444;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+
+  .btn-share {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.2);
+  }
+
+  .btn-share:hover {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  .btn-delete {
+    color: #6b7280;
+    background: var(--gray-50, #f9fafb);
+    border-color: var(--gray-200, #e5e7eb);
+  }
+
+  .btn-delete:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+    transform: translateY(-2px);
+  }
+
+  .resume-meta {
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--gray-100, #f3f4f6);
+    font-size: 0.65rem;
+    color: var(--gray-500, #6b7280);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0;
+  }
+
+  .meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .meta-item i {
+    font-size: 0.6rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--white, #ffffff);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .empty-state i {
+    font-size: 4rem;
+    color: var(--gray-400, #9ca3af);
+    margin-bottom: 1rem;
+  }
+
+  .empty-state h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--gray-700, #374151);
+  }
+
+  .empty-state p {
+    color: var(--gray-500, #6b7280);
+    margin-bottom: 1.5rem;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    background: var(--primary, #6366f1);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-dark, #4f46e5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .resumes-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .resume-card {
+      height: 480px;
+    }
+
+    .resume-meta {
+      flex-direction: column;
+      gap: 0.3rem;
+      align-items: flex-start;
+    }
+
+    .btn-action span {
+      display: none;
+    }
+
+    .btn-action {
+      padding: 0.4rem;
+    }
+
+    .btn-action i {
+      font-size: 0.9rem;
+      margin: 0;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .resume-card-footer {
+      gap: 0.3rem;
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .flash-message {
+    animation: slideIn 0.3s ease;
+  }
+</style>
+
+<script>
+  // Load actual resume previews for each card - FIXED to show complete resume
+  document.addEventListener("DOMContentLoaded", function () {
+    const resumeCards = document.querySelectorAll(".resume-card");
+
+    resumeCards.forEach((card) => {
+      const resumeId = card.dataset.resumeId;
+      const previewFrame = card.querySelector(".resume-mini-preview");
+
+      if (previewFrame && resumeId) {
+        // Fetch the actual resume preview with full theme styling
+        fetch(`/api/resume/${resumeId}/preview-theme?t=${Date.now()}`)
+          .then((response) => response.text())
+          .then((html) => {
+            // Enhanced modifications to ensure complete resume is visible
+            // - Remove any transforms that would cut off content
+            // - Allow proper scrolling within iframe
+            // - Ensure all content is visible
+            const modifiedHtml = html.replace(
+              "</head>",
+              `
+              <style>
+                /* Reset any existing transforms that might cause clipping */
+                * {
+                  max-width: 100%;
+                }
+                
+                /* Ensure body shows full content without scaling tricks */
+                body {
+                  margin: 0 !important;
+                  padding: 20px !important;
+                  background: white;
+                  overflow-x: visible !important;
+                }
+                
+                /* Make sure all containers display full width */
+                .resume-container, 
+                .resume-wrapper, 
+                .resume-content,
+                .resume-preview,
+                .resume-body {
+                  max-width: 100% !important;
+                  overflow-x: visible !important;
+                }
+                
+                /* Prevent any hidden overflow */
+                html, body {
+                  overflow-x: visible !important;
+                  height: auto !important;
+                  min-height: 100%;
+                }
+                
+                /* Hide theme selector UI elements */
+                .theme-selector,
+                .theme-badge,
+                .theme-status,
+                [class*="theme-badge"],
+                [class*="status-badge"],
+                .template-selector,
+                .color-picker {
+                  display: none !important;
+                }
+                
+                /* Ensure proper spacing for readability */
+                .resume-card,
+                .resume {
+                  box-shadow: none !important;
+                  margin: 0 !important;
+                }
+                
+                /* Make text readable in preview */
+                body {
+                  font-size: 14px;
+                }
+                
+                /* Fix any absolute positioning that might break layout */
+                .position-relative,
+                [style*="position: absolute"] {
+                  position: relative !important;
+                }
+              </style>
+            </head>`,
+            );
+
+            // Set the iframe content
+            previewFrame.srcdoc = modifiedHtml;
+
+            // Ensure iframe scales properly after load
+            previewFrame.onload = function () {
+              try {
+                // Adjust iframe height to content if needed (but keep scroll for better UX)
+                const iframeDoc =
+                  previewFrame.contentDocument ||
+                  previewFrame.contentWindow.document;
+                if (iframeDoc && iframeDoc.body) {
+                  // We want scrolling to be available, so we don't force height change
+                  // Just ensure body overflow is auto
+                  iframeDoc.body.style.overflowX = "auto";
+                }
+              } catch (e) {
+                // Cross-origin or other issues - ignore
+                console.debug("Could not adjust iframe internal styles", e);
+              }
+            };
+          })
+          .catch((error) => {
+            console.error("Failed to load preview for resume", resumeId, error);
+            // Fallback preview
+            previewFrame.srcdoc = `
+              <html>
+                <body style="display: flex; align-items: center; justify-content: center; height: 100%; margin: 0; background: #f9fafb; font-family: sans-serif;">
+                  <div style="text-align: center; color: #9ca3af;">
+                    <i class="fas fa-file-alt" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                    <p style="font-size: 0.75rem;">Preview not available</p>
+                    <p style="font-size: 0.7rem; margin-top: 0.5rem;">Click Edit to view full resume</p>
+                  </div>
+                </body>
+              </html>
+            `;
+          });
+      }
+    });
+  });
+
+  // Delete functionality with improved UX
+  document.querySelectorAll(".delete-resume").forEach((button) => {
+    button.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const resumeId = this.dataset.resumeId;
+      const resumeTitle = this.dataset.resumeTitle;
+
+      if (
+        confirm(
+          `Are you sure you want to delete "${resumeTitle}"? This action cannot be undone.`,
+        )
+      ) {
+        fetch(`/resume/${resumeId}/delete`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              // Show success message
+              const successMsg = document.createElement("div");
+              successMsg.className = "flash-message success";
+              successMsg.innerHTML =
+                '<i class="fas fa-check-circle"></i> Resume deleted successfully';
+              successMsg.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 1000;
+                padding: 1rem 1.5rem;
+                background: #10b981;
+                color: white;
+                border-radius: 8px;
+                animation: slideIn 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                font-weight: 500;
+              `;
+              document.body.appendChild(successMsg);
+
+              // Remove the card with animation
+              const card = this.closest(".resume-card");
+              if (card) {
+                card.style.opacity = "0";
+                card.style.transform = "scale(0.95)";
+                card.style.transition = "all 0.3s ease";
+                setTimeout(() => {
+                  card.remove();
+                  setTimeout(() => {
+                    successMsg.style.opacity = "0";
+                    successMsg.style.transform = "translateX(100%)";
+                    successMsg.style.transition = "all 0.3s ease";
+                    setTimeout(() => {
+                      successMsg.remove();
+                      // Reload if no resumes left
+                      if (
+                        document.querySelectorAll(".resume-card").length === 0
+                      ) {
+                        window.location.reload();
+                      }
+                    }, 300);
+                  }, 1500);
+                }, 300);
+              } else {
+                window.location.reload();
+              }
+            } else {
+              alert(data.message || "Failed to delete resume");
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Failed to delete resume. Please try again.");
+          });
+      }
+    });
+  });
+
+  // Make entire preview area clickable to view full resume
+  document.querySelectorAll(".resume-card-preview").forEach((previewArea) => {
+    const viewBtn = previewArea.querySelector(".preview-overlay-btn");
+    if (viewBtn) {
+      previewArea.addEventListener("click", (e) => {
+        // Don't trigger if clicking on the button itself (button has its own handler)
+        if (e.target.closest(".preview-overlay-btn")) return;
+        viewBtn.click();
+      });
+    }
+  });
+</script>
+{% endblock %}

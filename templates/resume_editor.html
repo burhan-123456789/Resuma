@@ -1,0 +1,2004 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Resume - {{ resume.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.editor-wrapper {
+    display: flex;
+    gap: 2rem;
+    min-height: 800px;
+}
+
+.editor-sidebar {
+    flex: 1;
+    background: var(--white);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+    position: sticky;
+    top: 90px;
+}
+
+.preview-sidebar {
+    flex: 1;
+    position: sticky;
+    top: 90px;
+    height: fit-content;
+}
+
+.preview-card {
+    background: var(--white);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    position: relative;
+}
+
+.preview-header {
+    background: var(--gray-800);
+    color: white;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+/* Modern: Theme button moved to top-right corner */
+.preview-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.preview-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.btn-change-theme-preview {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-change-theme-preview:hover {
+    background: white;
+    color: var(--primary);
+    border-color: white;
+    transform: translateY(-2px);
+}
+
+.preview-content {
+    padding: 2rem;
+    max-height: 800px;
+    overflow-y: auto;
+    transition: transform 0.3s;
+    transform-origin: top center;
+}
+
+/* Preview iframe styles */
+.preview-content iframe {
+    width: 100%;
+    min-height: 600px;
+    border: none;
+    background: white;
+}
+
+.form-section {
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.section-header {
+    padding: 1rem;
+    background: var(--gray-50);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.3s;
+    user-select: none;
+}
+
+.section-header:hover {
+    background: var(--gray-100);
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    pointer-events: none;
+}
+
+.section-header i:last-child {
+    pointer-events: none;
+    transition: transform 0.3s;
+}
+
+.section-content {
+    padding: 1rem;
+    display: none;
+}
+
+.section-content.active {
+    display: block;
+}
+
+.entry-card {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.drag-handle {
+    cursor: move;
+    color: var(--gray-500);
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.col {
+    flex: 1;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.form-group input, 
+.form-group textarea, 
+.form-group select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.btn-add {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--gray-100);
+    border: 2px dashed var(--gray-300);
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--gray-600);
+    transition: all 0.3s;
+    margin-top: 0.5rem;
+}
+
+.btn-add:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.btn-remove {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 1rem;
+}
+
+.resume-title-input {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.editor-toolbar {
+    padding: 1rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.auto-save-status {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.auto-save-status.show {
+    opacity: 1;
+}
+
+.zoom-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.btn-icon-sm {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-icon-sm:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.loading-preview {
+    text-align: center;
+    padding: 3rem;
+    color: var(--gray-500);
+}
+
+.no-theme-message {
+    text-align: center;
+    padding: 3rem;
+    color: var(--gray-500);
+}
+
+.no-theme-message i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--gray-400);
+}
+
+.no-theme-message p {
+    margin-bottom: 1rem;
+}
+
+/* Next Step Panel - moved to bottom with more margin */
+.next-step-panel {
+    text-align: center;
+    padding: 2rem 0 3rem 0;
+    margin-top: 1rem;
+    border-top: 1px solid var(--gray-200);
+}
+
+.btn-next-step {
+    padding: 0.875rem 2.5rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-next-step:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Custom Alert Modal */
+.custom-alert {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.custom-alert.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.custom-alert-content {
+    background: var(--white);
+    border-radius: 15px;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.3s;
+}
+
+.custom-alert.show .custom-alert-content {
+    transform: scale(1);
+}
+
+.custom-alert-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.custom-alert-icon.success {
+    color: #10b981;
+}
+
+.custom-alert-icon.warning {
+    color: #f59e0b;
+}
+
+.custom-alert-icon.error {
+    color: #ef4444;
+}
+
+.custom-alert-icon.info {
+    color: var(--primary);
+}
+
+.custom-alert-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--gray-800);
+}
+
+.custom-alert-message {
+    color: var(--gray-600);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.custom-alert-buttons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.custom-alert-btn {
+    padding: 0.5rem 1.5rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+.custom-alert-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.custom-alert-btn.cancel {
+    background: var(--gray-400);
+}
+
+.custom-alert-btn.cancel:hover {
+    background: var(--gray-500);
+}
+
+/* Mobile Toggle Preview Button */
+.mobile-preview-toggle {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    z-index: 999;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    font-size: 0.9rem;
+    gap: 0.5rem;
+    align-items: center;
+    transition: all 0.3s;
+}
+
+.mobile-preview-toggle:hover {
+    background: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 1024px) {
+    .editor-wrapper {
+        gap: 1.5rem;
+    }
+    
+    .row {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .editor-wrapper {
+        flex-direction: column;
+        gap: 1.5rem;
+        min-height: auto;
+    }
+    
+    .editor-sidebar {
+        position: relative;
+        top: 0;
+        max-height: none;
+        overflow-y: visible;
+        height: auto;
+    }
+    
+    .preview-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1050;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    
+    .preview-sidebar.show {
+        display: flex;
+    }
+    
+    .preview-card {
+        width: 100%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        border-radius: 15px;
+    }
+    
+    .mobile-preview-toggle {
+        display: flex;
+    }
+    
+    .next-step-panel {
+        padding: 1.5rem 0 2rem 0;
+        margin-top: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .content-wrapper {
+        padding: 1rem;
+    }
+    
+    .btn-next-step {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block page_title %}
+Edit Resume: {{ resume.title }}
+{% endblock %}
+
+{% block content %}
+<div data-resume-id="{{ resume.id }}" data-has-theme="{{ has_theme|lower }}" class="resume-editor">
+    <div class="editor-wrapper">
+        <!-- Editor Panel -->
+        <div class="editor-sidebar">
+            <div class="editor-toolbar">
+                <input type="text" id="resumeTitle" value="{{ resume.title }}" placeholder="Resume Title" class="resume-title-input">
+            </div>
+            
+            <!-- Personal Information -->
+            <div class="form-section" data-section="personal">
+                <div class="section-header">
+                    <h3><i class="fas fa-user"></i> Personal Information</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="section-content">
+                    <form id="personalInfoForm">
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label>First Name</label>
+                                    <input type="text" name="first_name" value="{{ resume_data.personal_info.first_name if resume_data.personal_info else '' }}" required>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label>Last Name</label>
+                                    <input type="text" name="last_name" value="{{ resume_data.personal_info.last_name if resume_data.personal_info else '' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Job Title</label>
+                            <input type="text" name="job_title" value="{{ resume_data.personal_info.job_title if resume_data.personal_info else '' }}" placeholder="e.g., Senior Software Engineer">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="email" value="{{ resume_data.personal_info.email if resume_data.personal_info else '' }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" name="phone" value="{{ resume_data.personal_info.phone if resume_data.personal_info else '' }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Address</label>
+                            <input type="text" name="address" value="{{ resume_data.personal_info.address if resume_data.personal_info else '' }}">
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label>City</label>
+                                    <input type="text" name="city" value="{{ resume_data.personal_info.city if resume_data.personal_info else '' }}">
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label>Country</label>
+                                    <input type="text" name="country" value="{{ resume_data.personal_info.country if resume_data.personal_info else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Professional Summary -->
+            <div class="form-section" data-section="summary">
+                <div class="section-header">
+                    <h3><i class="fas fa-align-left"></i> Professional Summary</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="section-content">
+                    <div id="summariesContainer" class="sortable-container">
+                        {% for summary in resume_data.summaries %}
+                        <div class="entry-card">
+                            <div class="entry-header">
+                                <i class="fas fa-grip-vertical drag-handle"></i>
+                                <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <div class="form-group">
+                                <textarea name="content" rows="4" placeholder="Write a professional summary highlighting your key strengths and experience...">{{ summary.content }}</textarea>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="entry-card">
+                            <div class="entry-header">
+                                <i class="fas fa-grip-vertical drag-handle"></i>
+                                <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <div class="form-group">
+                                <textarea name="content" rows="4" placeholder="Write a professional summary highlighting your key strengths and experience..."></textarea>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn-add" onclick="addEntry('summaries')">
+                        <i class="fas fa-plus"></i> Add Summary
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Work Experience -->
+            <div class="form-section" data-section="experience">
+                <div class="section-header">
+                    <h3><i class="fas fa-briefcase"></i> Work Experience</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="section-content">
+                    <div id="experiencesContainer" class="sortable-container">
+                        {% for exp in resume_data.experiences %}
+                        <div class="entry-card">
+                            <div class="entry-header">
+                                <i class="fas fa-grip-vertical drag-handle"></i>
+                                <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <div class="form-group">
+                                <label>Company</label>
+                                <input type="text" name="company" value="{{ exp.company }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Position</label>
+                                <input type="text" name="position" value="{{ exp.position }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Location</label>
+                                <input type="text" name="location" value="{{ exp.location }}">
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>Start Date</label>
+                                        <input type="date" name="start_date" value="{{ exp.start_date.strftime('%Y-%m-%d') if exp.start_date else '' }}">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>End Date</label>
+                                        <input type="date" name="end_date" value="{{ exp.end_date.strftime('%Y-%m-%d') if exp.end_date else '' }}" {% if exp.current %}disabled{% endif %}>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="current" {% if exp.current %}checked{% endif %} onchange="toggleEndDate(this)">
+                                    I currently work here
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea name="description" rows="3" placeholder="Describe your responsibilities and achievements...">{{ exp.description }}</textarea>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="entry-card">
+                            <div class="entry-header">
+                                <i class="fas fa-grip-vertical drag-handle"></i>
+                                <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <div class="form-group">
+                                <label>Company</label>
+                                <input type="text" name="company" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Position</label>
+                                <input type="text" name="position" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Location</label>
+                                <input type="text" name="location">
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>Start Date</label>
+                                        <input type="date" name="start_date">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>End Date</label>
+                                        <input type="date" name="end_date">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="current" onchange="toggleEndDate(this)">
+                                    I currently work here
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea name="description" rows="3" placeholder="Describe your responsibilities and achievements..."></textarea>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn-add" onclick="addEntry('experiences')">
+                        <i class="fas fa-plus"></i> Add Work Experience
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Education -->
+            <div class="form-section" data-section="education">
+                <div class="section-header">
+                    <h3><i class="fas fa-graduation-cap"></i> Education</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="section-content">
+                    <div id="educationContainer" class="sortable-container">
+                        {% for edu in resume_data.education %}
+                        <div class="entry-card">
+                            <div class="entry-header">
+                                <i class="fas fa-grip-vertical drag-handle"></i>
+                                <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <div class="form-group">
+                                <label>Institution</label>
+                                <input type="text" name="institution" value="{{ edu.institution }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Degree</label>
+                                <input type="text" name="degree" value="{{ edu.degree }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Field of Study</label>
+                                <input type="text" name="field_of_study" value="{{ edu.field_of_study }}">
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>Start Date</label>
+                                        <input type="date" name="start_date" value="{{ edu.start_date.strftime('%Y-%m-%d') if edu.start_date else '' }}">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>End Date</label>
+                                        <input type="date" name="end_date" value="{{ edu.end_date.strftime('%Y-%m-%d') if edu.end_date else '' }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea name="description" rows="2" placeholder="Academic achievements, relevant coursework...">{{ edu.description }}</textarea>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="entry-card">
+                            <div class="entry-header">
+                                <i class="fas fa-grip-vertical drag-handle"></i>
+                                <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <div class="form-group">
+                                <label>Institution</label>
+                                <input type="text" name="institution" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Degree</label>
+                                <input type="text" name="degree" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Field of Study</label>
+                                <input type="text" name="field_of_study">
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>Start Date</label>
+                                        <input type="date" name="start_date">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>End Date</label>
+                                        <input type="date" name="end_date">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea name="description" rows="2" placeholder="Academic achievements, relevant coursework..."></textarea>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn-add" onclick="addEntry('education')">
+                        <i class="fas fa-plus"></i> Add Education
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Skills -->
+            <div class="form-section" data-section="skills">
+                <div class="section-header">
+                    <h3><i class="fas fa-code"></i> Skills</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="section-content">
+                    <div id="skillsContainer" class="sortable-container">
+                        {% for skill in resume_data.skills %}
+                        <div class="entry-card">
+                            <div class="entry-header">
+                                <i class="fas fa-grip-vertical drag-handle"></i>
+                                <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <div class="form-group">
+                                <label>Skill Name</label>
+                                <input type="text" name="name" value="{{ skill.name }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select name="category">
+                                    <option value="">Select Category</option>
+                                    <option value="Technical" {% if skill.category == 'Technical' %}selected{% endif %}>Technical</option>
+                                    <option value="Soft" {% if skill.category == 'Soft' %}selected{% endif %}>Soft Skills</option>
+                                    <option value="Language" {% if skill.category == 'Language' %}selected{% endif %}>Language</option>
+                                    <option value="Tools" {% if skill.category == 'Tools' %}selected{% endif %}>Tools & Software</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Proficiency Level</label>
+                                <select name="level">
+                                    <option value="">Select Level</option>
+                                    <option value="Beginner" {% if skill.level == 'Beginner' %}selected{% endif %}>Beginner</option>
+                                    <option value="Intermediate" {% if skill.level == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+                                    <option value="Advanced" {% if skill.level == 'Advanced' %}selected{% endif %}>Advanced</option>
+                                    <option value="Expert" {% if skill.level == 'Expert' %}selected{% endif %}>Expert</option>
+                                </select>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="entry-card">
+                            <div class="entry-header">
+                                <i class="fas fa-grip-vertical drag-handle"></i>
+                                <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <div class="form-group">
+                                <label>Skill Name</label>
+                                <input type="text" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select name="category">
+                                    <option value="">Select Category</option>
+                                    <option value="Technical">Technical</option>
+                                    <option value="Soft">Soft Skills</option>
+                                    <option value="Language">Language</option>
+                                    <option value="Tools">Tools & Software</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Proficiency Level</label>
+                                <select name="level">
+                                    <option value="">Select Level</option>
+                                    <option value="Beginner">Beginner</option>
+                                    <option value="Intermediate">Intermediate</option>
+                                    <option value="Advanced">Advanced</option>
+                                    <option value="Expert">Expert</option>
+                                </select>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn-add" onclick="addEntry('skills')">
+                        <i class="fas fa-plus"></i> Add Skill
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Projects -->
+            <div class="form-section" data-section="projects">
+                <div class="section-header">
+                    <h3><i class="fas fa-project-diagram"></i> Projects</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="section-content">
+                    <div id="projectsContainer" class="sortable-container">
+                        {% for project in resume_data.projects %}
+                        <div class="entry-card">
+                            <div class="entry-header">
+                                <i class="fas fa-grip-vertical drag-handle"></i>
+                                <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <div class="form-group">
+                                <label>Project Name</label>
+                                <input type="text" name="name" value="{{ project.name }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Technologies Used</label>
+                                <input type="text" name="technologies" value="{{ project.technologies }}" placeholder="React, Python, Django...">
+                            </div>
+                            <div class="form-group">
+                                <label>Project Link (URL)</label>
+                                <input type="url" name="link" value="{{ project.link }}" placeholder="https://github.com/...">
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea name="description" rows="3" placeholder="Describe the project, your role, and key accomplishments...">{{ project.description }}</textarea>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="entry-card">
+                            <div class="entry-header">
+                                <i class="fas fa-grip-vertical drag-handle"></i>
+                                <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <div class="form-group">
+                                <label>Project Name</label>
+                                <input type="text" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Technologies Used</label>
+                                <input type="text" name="technologies" placeholder="React, Python, Django...">
+                            </div>
+                            <div class="form-group">
+                                <label>Project Link (URL)</label>
+                                <input type="url" name="link" placeholder="https://github.com/...">
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea name="description" rows="3" placeholder="Describe the project, your role, and key accomplishments..."></textarea>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn-add" onclick="addEntry('projects')">
+                        <i class="fas fa-plus"></i> Add Project
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Preview Panel - Theme button now at top right corner -->
+        <div class="preview-sidebar" id="previewSidebar">
+            <div class="preview-card">
+                <div class="preview-header">
+                    <div class="preview-header-left">
+                        <h4>Live Preview</h4>
+                    </div>
+                    <div class="preview-header-right">
+                        <button class="btn-change-theme-preview" id="changeThemeBtn" onclick="redirectToTemplates()">
+                            <i class="fas fa-palette"></i> Change Theme
+                        </button>
+                        <div class="zoom-controls">
+                            <button class="btn-icon-sm" onclick="zoomOut()"><i class="fas fa-search-minus"></i></button>
+                            <span id="zoomLevel">100%</span>
+                            <button class="btn-icon-sm" onclick="zoomIn()"><i class="fas fa-search-plus"></i></button>
+                            <button class="btn-icon-sm" onclick="resetZoom()"><i class="fas fa-undo"></i></button>
+                            <button class="btn-icon-sm" id="fullscreenBtn"><i class="fas fa-expand"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="preview-content" id="livePreview">
+                    <div class="loading-preview">Loading preview...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Next Step Panel - moved to bottom with more spacing -->
+<div class="next-step-panel" id="nextStepPanel">
+    <button class="btn-next-step" id="nextStepBtn">
+        <i class="fas fa-arrow-right"></i> <span id="nextStepText">Choose Theme</span>
+    </button>
+</div>
+
+<!-- Mobile Preview Toggle Button -->
+<button class="mobile-preview-toggle" id="mobilePreviewToggle">
+    <i class="fas fa-eye"></i>
+    <span>Preview Resume</span>
+</button>
+
+<div id="autoSaveStatus" class="auto-save-status">Draft saved</div>
+
+<!-- Custom Alert Modal -->
+<div id="customAlert" class="custom-alert">
+    <div class="custom-alert-content">
+        <div class="custom-alert-icon" id="alertIcon"></div>
+        <div class="custom-alert-title" id="alertTitle"></div>
+        <div class="custom-alert-message" id="alertMessage"></div>
+        <div class="custom-alert-buttons" id="alertButtons">
+            <button class="custom-alert-btn" id="alertConfirmBtn">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- Templates for dynamic entries -->
+<template id="summariesTemplate">
+    <div class="entry-card">
+        <div class="entry-header">
+            <i class="fas fa-grip-vertical drag-handle"></i>
+            <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+        </div>
+        <div class="form-group">
+            <textarea name="content" rows="4" placeholder="Write a professional summary highlighting your key strengths and experience..."></textarea>
+        </div>
+    </div>
+</template>
+
+<template id="experiencesTemplate">
+    <div class="entry-card">
+        <div class="entry-header">
+            <i class="fas fa-grip-vertical drag-handle"></i>
+            <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+        </div>
+        <div class="form-group">
+            <label>Company</label>
+            <input type="text" name="company" required>
+        </div>
+        <div class="form-group">
+            <label>Position</label>
+            <input type="text" name="position" required>
+        </div>
+        <div class="form-group">
+            <label>Location</label>
+            <input type="text" name="location">
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" name="start_date">
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="date" name="end_date">
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="current" onchange="toggleEndDate(this)">
+                I currently work here
+            </label>
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" rows="3" placeholder="Describe your responsibilities and achievements..."></textarea>
+        </div>
+    </div>
+</template>
+
+<template id="educationTemplate">
+    <div class="entry-card">
+        <div class="entry-header">
+            <i class="fas fa-grip-vertical drag-handle"></i>
+            <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+        </div>
+        <div class="form-group">
+            <label>Institution</label>
+            <input type="text" name="institution" required>
+        </div>
+        <div class="form-group">
+            <label>Degree</label>
+            <input type="text" name="degree" required>
+        </div>
+        <div class="form-group">
+            <label>Field of Study</label>
+            <input type="text" name="field_of_study">
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" name="start_date">
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="date" name="end_date">
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" rows="2" placeholder="Academic achievements, relevant coursework..."></textarea>
+        </div>
+    </div>
+</template>
+
+<template id="skillsTemplate">
+    <div class="entry-card">
+        <div class="entry-header">
+            <i class="fas fa-grip-vertical drag-handle"></i>
+            <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+        </div>
+        <div class="form-group">
+            <label>Skill Name</label>
+            <input type="text" name="name" required>
+        </div>
+        <div class="form-group">
+            <label>Category</label>
+            <select name="category">
+                <option value="">Select Category</option>
+                <option value="Technical">Technical</option>
+                <option value="Soft">Soft Skills</option>
+                <option value="Language">Language</option>
+                <option value="Tools">Tools & Software</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Proficiency Level</label>
+            <select name="level">
+                <option value="">Select Level</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+                <option value="Expert">Expert</option>
+            </select>
+        </div>
+    </div>
+</template>
+
+<template id="projectsTemplate">
+    <div class="entry-card">
+        <div class="entry-header">
+            <i class="fas fa-grip-vertical drag-handle"></i>
+            <button type="button" class="btn-remove" onclick="removeEntry(this)"><i class="fas fa-trash"></i></button>
+        </div>
+        <div class="form-group">
+            <label>Project Name</label>
+            <input type="text" name="name" required>
+        </div>
+        <div class="form-group">
+            <label>Technologies Used</label>
+            <input type="text" name="technologies" placeholder="React, Python, Django...">
+        </div>
+        <div class="form-group">
+            <label>Project Link (URL)</label>
+            <input type="url" name="link" placeholder="https://github.com/...">
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" rows="3" placeholder="Describe the project, your role, and key accomplishments..."></textarea>
+        </div>
+    </div>
+</template>
+
+<script>
+// All JavaScript remains exactly the same as original
+let currentZoom = 100;
+let autoSaveTimer;
+let currentResumeId = document.querySelector('[data-resume-id]')?.getAttribute('data-resume-id');
+let hasTheme = document.querySelector('[data-has-theme]')?.getAttribute('data-has-theme') === 'true';
+let currentTheme = '{{ resume.selected_theme }}';
+let currentCategory = '{{ resume.theme_category }}';
+let currentSectionIndex = 0;
+
+// Track which sections have data
+let sectionDataStatus = {
+    personal: false,
+    summary: false,
+    experience: false,
+    education: false,
+    skills: false,
+    projects: false
+};
+
+// Get all sections in order
+const sectionOrder = ['personal', 'summary', 'experience', 'education', 'skills', 'projects'];
+
+// Custom Alert Function
+function showCustomAlert(title, message, type = 'info', showConfirm = true, onConfirm = null, showCancel = false, onCancel = null) {
+    const alertModal = document.getElementById('customAlert');
+    const alertIcon = document.getElementById('alertIcon');
+    const alertTitle = document.getElementById('alertTitle');
+    const alertMessage = document.getElementById('alertMessage');
+    const alertButtons = document.getElementById('alertButtons');
+    
+    let iconHtml = '';
+    let iconClass = '';
+    switch(type) {
+        case 'success':
+            iconHtml = '<i class="fas fa-check-circle"></i>';
+            iconClass = 'success';
+            break;
+        case 'warning':
+            iconHtml = '<i class="fas fa-exclamation-triangle"></i>';
+            iconClass = 'warning';
+            break;
+        case 'error':
+            iconHtml = '<i class="fas fa-times-circle"></i>';
+            iconClass = 'error';
+            break;
+        default:
+            iconHtml = '<i class="fas fa-info-circle"></i>';
+            iconClass = 'info';
+    }
+    
+    alertIcon.innerHTML = iconHtml;
+    alertIcon.className = `custom-alert-icon ${iconClass}`;
+    alertTitle.textContent = title;
+    alertMessage.textContent = message;
+    
+    alertButtons.innerHTML = '';
+    
+    if (showCancel) {
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.className = 'custom-alert-btn cancel';
+        cancelBtn.style.background = 'var(--gray-400)';
+        cancelBtn.style.marginRight = '0.5rem';
+        cancelBtn.onclick = () => {
+            closeCustomAlert();
+            if (onCancel) onCancel();
+        };
+        alertButtons.appendChild(cancelBtn);
+    }
+    
+    if (showConfirm) {
+        const confirmBtn = document.createElement('button');
+        confirmBtn.textContent = 'Confirm';
+        confirmBtn.className = 'custom-alert-btn';
+        confirmBtn.onclick = () => {
+            closeCustomAlert();
+            if (onConfirm) onConfirm();
+        };
+        alertButtons.appendChild(confirmBtn);
+    } else {
+        const okBtn = document.createElement('button');
+        okBtn.textContent = 'OK';
+        okBtn.className = 'custom-alert-btn';
+        okBtn.onclick = () => {
+            closeCustomAlert();
+            if (onConfirm) onConfirm();
+        };
+        alertButtons.appendChild(okBtn);
+    }
+    
+    alertModal.classList.add('show');
+}
+
+function closeCustomAlert() {
+    const alertModal = document.getElementById('customAlert');
+    alertModal.classList.remove('show');
+}
+
+function checkSectionHasData(sectionName) {
+    const section = document.querySelector(`.form-section[data-section="${sectionName}"]`);
+    if (!section) return false;
+    
+    const content = section.querySelector('.section-content');
+    if (!content) return false;
+    
+    if (sectionName === 'personal') {
+        const inputs = content.querySelectorAll('input');
+        for (let input of inputs) {
+            if (input.value && input.value.trim() !== '') {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    const entryCards = content.querySelectorAll('.entry-card');
+    if (entryCards.length === 0) return false;
+    
+    for (let card of entryCards) {
+        const inputs = card.querySelectorAll('input, textarea, select');
+        for (let input of inputs) {
+            if (input.value && input.value.trim() !== '') {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function updateAllSectionStatuses() {
+    for (let section of sectionOrder) {
+        sectionDataStatus[section] = checkSectionHasData(section);
+    }
+}
+
+function autoAdvanceToNextSection() {
+    updateAllSectionStatuses();
+    
+    let nextSectionIndex = -1;
+    for (let i = 0; i < sectionOrder.length; i++) {
+        if (!sectionDataStatus[sectionOrder[i]]) {
+            nextSectionIndex = i;
+            break;
+        }
+    }
+    
+    if (nextSectionIndex === -1) return;
+    
+    let currentActiveIndex = -1;
+    for (let i = 0; i < sectionOrder.length; i++) {
+        const section = document.querySelector(`.form-section[data-section="${sectionOrder[i]}"]`);
+        if (section) {
+            const content = section.querySelector('.section-content');
+            if (content && content.classList.contains('active')) {
+                currentActiveIndex = i;
+                break;
+            }
+        }
+    }
+    
+    if (currentActiveIndex !== -1 && 
+        sectionDataStatus[sectionOrder[currentActiveIndex]] && 
+        currentActiveIndex < nextSectionIndex) {
+        
+        const currentSection = document.querySelector(`.form-section[data-section="${sectionOrder[currentActiveIndex]}"]`);
+        if (currentSection) {
+            const currentContent = currentSection.querySelector('.section-content');
+            const currentIcon = currentSection.querySelector('.section-header i:last-child');
+            if (currentContent && currentContent.classList.contains('active')) {
+                currentContent.classList.remove('active');
+                if (currentIcon) {
+                    currentIcon.classList.remove('fa-chevron-up');
+                    currentIcon.classList.add('fa-chevron-down');
+                }
+            }
+        }
+        
+        const nextSection = document.querySelector(`.form-section[data-section="${sectionOrder[nextSectionIndex]}"]`);
+        if (nextSection) {
+            const nextContent = nextSection.querySelector('.section-content');
+            const nextIcon = nextSection.querySelector('.section-header i:last-child');
+            if (nextContent && !nextContent.classList.contains('active')) {
+                nextContent.classList.add('active');
+                if (nextIcon) {
+                    nextIcon.classList.remove('fa-chevron-down');
+                    nextIcon.classList.add('fa-chevron-up');
+                }
+            }
+        }
+    }
+}
+
+function initAutoAdvance() {
+    const allInputs = document.querySelectorAll('input, textarea, select');
+    
+    const checkAndAdvance = () => {
+        const oldStatuses = { ...sectionDataStatus };
+        updateAllSectionStatuses();
+        
+        const activeSection = document.querySelector('.section-content.active');
+        if (activeSection) {
+            const parentSection = activeSection.closest('.form-section');
+            if (parentSection) {
+                const sectionName = parentSection.getAttribute('data-section');
+                if (sectionName && !oldStatuses[sectionName] && sectionDataStatus[sectionName]) {
+                    autoAdvanceToNextSection();
+                }
+            }
+        }
+    };
+    
+    allInputs.forEach(input => {
+        input.addEventListener('input', () => {
+            setTimeout(checkAndAdvance, 100);
+        });
+        input.addEventListener('change', () => {
+            setTimeout(checkAndAdvance, 100);
+        });
+    });
+    
+    const observer = new MutationObserver(() => {
+        setTimeout(checkAndAdvance, 100);
+    });
+    
+    const containers = document.querySelectorAll('.sortable-container');
+    containers.forEach(container => {
+        observer.observe(container, {
+            childList: true,
+            subtree: true
+        });
+    });
+}
+
+function updateNextStepButton() {
+    const nextStepText = document.getElementById('nextStepText');
+    if (nextStepText) {
+        if (hasTheme && currentTheme && currentCategory) {
+            nextStepText.textContent = 'Preview PDF';
+        } else {
+            nextStepText.textContent = 'Choose Theme';
+        }
+    }
+}
+
+async function updateThemeStatus() {
+    try {
+        const response = await fetch(`/resume/${currentResumeId}/edit`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const editorDiv = document.querySelector('[data-has-theme]');
+        if (editorDiv) {
+            const newHasTheme = editorDiv.getAttribute('data-has-theme') === 'true';
+            if (newHasTheme !== hasTheme) {
+                hasTheme = newHasTheme;
+                updateNextStepButton();
+            }
+        }
+    } catch (error) {
+        console.error('Failed to update theme status:', error);
+    }
+}
+
+function initSectionAccordion() {
+    const sectionHeaders = document.querySelectorAll('.section-header');
+    
+    sectionHeaders.forEach((header, index) => {
+        const section = header.closest('.form-section');
+        const content = section.querySelector('.section-content');
+        const icon = header.querySelector('i:last-child');
+        
+        if (index === 0) {
+            content.classList.add('active');
+            if (icon) {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            }
+        } else {
+            content.classList.remove('active');
+            if (icon) {
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        }
+        
+        header.removeEventListener('click', header.clickHandler);
+        
+        const clickHandler = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const currentSection = this.closest('.form-section');
+            const currentContent = currentSection.querySelector('.section-content');
+            const currentIcon = this.querySelector('i:last-child');
+            
+            if (currentContent.classList.contains('active')) {
+                currentContent.classList.remove('active');
+                if (currentIcon) {
+                    currentIcon.classList.remove('fa-chevron-up');
+                    currentIcon.classList.add('fa-chevron-down');
+                }
+            } else {
+                currentContent.classList.add('active');
+                if (currentIcon) {
+                    currentIcon.classList.remove('fa-chevron-down');
+                    currentIcon.classList.add('fa-chevron-up');
+                }
+            }
+        };
+        
+        header.clickHandler = clickHandler;
+        header.addEventListener('click', clickHandler);
+        header.style.cursor = 'pointer';
+    });
+}
+
+function zoomIn() {
+    if (currentZoom < 150) {
+        currentZoom += 10;
+        updateZoom();
+    }
+}
+
+function zoomOut() {
+    if (currentZoom > 70) {
+        currentZoom -= 10;
+        updateZoom();
+    }
+}
+
+function resetZoom() {
+    currentZoom = 100;
+    updateZoom();
+}
+
+function updateZoom() {
+    const preview = document.querySelector('.preview-content');
+    if (preview) {
+        preview.style.transform = `scale(${currentZoom / 100})`;
+        preview.style.transformOrigin = 'top center';
+        const zoomLevelSpan = document.getElementById('zoomLevel');
+        if (zoomLevelSpan) {
+            zoomLevelSpan.textContent = `${currentZoom}%`;
+        }
+    }
+}
+
+function toggleFullscreen() {
+    const previewSidebar = document.getElementById('previewSidebar');
+    if (!previewSidebar) return;
+    
+    try {
+        if (!document.fullscreenElement) {
+            previewSidebar.requestFullscreen().catch(err => {
+                console.error(`Error: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    } catch (error) {
+        console.error('Fullscreen error:', error);
+    }
+}
+
+function toggleEndDate(checkbox) {
+    const endDateInput = checkbox.closest('.entry-card')?.querySelector('input[name="end_date"]');
+    if (endDateInput) {
+        endDateInput.disabled = checkbox.checked;
+        if (checkbox.checked) {
+            endDateInput.value = '';
+        }
+    }
+}
+
+function addEntry(section) {
+    const container = document.getElementById(`${section}Container`);
+    let templateId = '';
+    
+    switch(section) {
+        case 'summaries':
+            templateId = 'summariesTemplate';
+            break;
+        case 'experiences':
+            templateId = 'experiencesTemplate';
+            break;
+        case 'education':
+            templateId = 'educationTemplate';
+            break;
+        case 'skills':
+            templateId = 'skillsTemplate';
+            break;
+        case 'projects':
+            templateId = 'projectsTemplate';
+            break;
+        default:
+            return;
+    }
+    
+    const template = document.getElementById(templateId);
+    
+    if (container && template) {
+        const newEntry = template.content.cloneNode(true);
+        container.appendChild(newEntry);
+        saveResume();
+        showCustomAlert('Success', 'New entry added successfully', 'success', false);
+        setTimeout(() => {
+            updateAllSectionStatuses();
+            autoAdvanceToNextSection();
+        }, 100);
+    }
+}
+
+function removeEntry(button) {
+    const entry = button.closest('.entry-card');
+    if (entry) {
+        showCustomAlert(
+            'Confirm Removal', 
+            'Are you sure you want to remove this entry?', 
+            'warning',
+            true,
+            () => {
+                entry.remove();
+                saveResume();
+                showCustomAlert('Removed', 'Entry removed successfully', 'success', false);
+                setTimeout(() => {
+                    updateAllSectionStatuses();
+                }, 100);
+            },
+            true
+        );
+    }
+}
+
+async function updateLivePreview() {
+    if (!currentResumeId) return;
+    
+    if (!hasTheme && (!currentTheme || !currentCategory)) {
+        const previewContainer = document.getElementById('livePreview');
+        if (previewContainer) {
+            previewContainer.innerHTML = `
+                <div class="no-theme-message">
+                    <i class="fas fa-palette"></i>
+                    <p><strong>No Theme Selected</strong></p>
+                    <p>Please select a theme to see your resume preview.</p>
+                    <button class="btn-primary" onclick="redirectToTemplates()" style="margin-top: 1rem;">
+                        <i class="fas fa-palette"></i> Choose a Theme
+                    </button>
+                </div>
+            `;
+        }
+        return;
+    }
+    
+    try {
+        const saved = await saveResume();
+        
+        if (saved) {
+            const theme = currentTheme || 'modern_1';
+            const category = currentCategory || 'professional';
+            const response = await fetch(`/api/resume/${currentResumeId}/preview-theme?theme=${theme}&category=${category}&t=${Date.now()}`);
+            const html = await response.text();
+            const previewContainer = document.getElementById('livePreview');
+            if (previewContainer) {
+                previewContainer.innerHTML = html;
+            }
+        }
+    } catch (error) {
+        console.error('Preview update failed:', error);
+        const previewContainer = document.getElementById('livePreview');
+        if (previewContainer) {
+            previewContainer.innerHTML = '<div class="loading-preview">Preview update failed. Please refresh the page.</div>';
+        }
+    }
+}
+
+async function saveResume() {
+    if (!currentResumeId) return false;
+    
+    const formData = collectResumeData();
+    
+    try {
+        const response = await fetch(`/resume/${currentResumeId}/edit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server error response:', errorText);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAutoSaveIndicator();
+            return true;
+        } else {
+            console.error('Save failed:', result.message);
+            return false;
+        }
+    } catch (error) {
+        console.error('Save failed:', error);
+        return false;
+    }
+}
+
+function collectResumeData() {
+    const data = {
+        title: document.getElementById('resumeTitle')?.value || '',
+        personal_info: {},
+        summaries: [],
+        education: [],
+        experiences: [],
+        skills: [],
+        projects: [],
+        certifications: [],
+        languages: [],
+        social_links: []
+    };
+    
+    const personalInfoForm = document.getElementById('personalInfoForm');
+    if (personalInfoForm) {
+        const formData = new FormData(personalInfoForm);
+        for (let [key, value] of formData.entries()) {
+            if (value !== null && value !== undefined && value !== '') {
+                data.personal_info[key] = value;
+            }
+        }
+    }
+    
+    const summariesContainer = document.getElementById('summariesContainer');
+    if (summariesContainer) {
+        summariesContainer.querySelectorAll('.entry-card').forEach(card => {
+            const content = card.querySelector('textarea[name="content"]')?.value || '';
+            if (content.trim()) {
+                data.summaries.push({ content: content });
+            }
+        });
+    }
+    
+    const educationContainer = document.getElementById('educationContainer');
+    if (educationContainer) {
+        educationContainer.querySelectorAll('.entry-card').forEach(card => {
+            const institution = card.querySelector('input[name="institution"]')?.value || '';
+            const degree = card.querySelector('input[name="degree"]')?.value || '';
+            
+            if (institution.trim() || degree.trim()) {
+                const educationItem = {
+                    institution: institution,
+                    degree: degree,
+                    field_of_study: card.querySelector('input[name="field_of_study"]')?.value || '',
+                    start_date: card.querySelector('input[name="start_date"]')?.value || '',
+                    end_date: card.querySelector('input[name="end_date"]')?.value || '',
+                    current: card.querySelector('input[name="current"]')?.checked || false,
+                    description: card.querySelector('textarea[name="description"]')?.value || ''
+                };
+                data.education.push(educationItem);
+            }
+        });
+    }
+    
+    const experiencesContainer = document.getElementById('experiencesContainer');
+    if (experiencesContainer) {
+        experiencesContainer.querySelectorAll('.entry-card').forEach(card => {
+            const company = card.querySelector('input[name="company"]')?.value || '';
+            const position = card.querySelector('input[name="position"]')?.value || '';
+            
+            if (company.trim() || position.trim()) {
+                const experienceItem = {
+                    company: company,
+                    position: position,
+                    location: card.querySelector('input[name="location"]')?.value || '',
+                    start_date: card.querySelector('input[name="start_date"]')?.value || '',
+                    end_date: card.querySelector('input[name="end_date"]')?.value || '',
+                    current: card.querySelector('input[name="current"]')?.checked || false,
+                    description: card.querySelector('textarea[name="description"]')?.value || ''
+                };
+                data.experiences.push(experienceItem);
+            }
+        });
+    }
+    
+    const skillsContainer = document.getElementById('skillsContainer');
+    if (skillsContainer) {
+        skillsContainer.querySelectorAll('.entry-card').forEach(card => {
+            const name = card.querySelector('input[name="name"]')?.value || '';
+            if (name.trim()) {
+                const skillItem = {
+                    name: name,
+                    category: card.querySelector('select[name="category"]')?.value || '',
+                    level: card.querySelector('select[name="level"]')?.value || ''
+                };
+                data.skills.push(skillItem);
+            }
+        });
+    }
+    
+    const projectsContainer = document.getElementById('projectsContainer');
+    if (projectsContainer) {
+        projectsContainer.querySelectorAll('.entry-card').forEach(card => {
+            const name = card.querySelector('input[name="name"]')?.value || '';
+            if (name.trim()) {
+                const projectItem = {
+                    name: name,
+                    technologies: card.querySelector('input[name="technologies"]')?.value || '',
+                    link: card.querySelector('input[name="link"]')?.value || '',
+                    description: card.querySelector('textarea[name="description"]')?.value || ''
+                };
+                data.projects.push(projectItem);
+            }
+        });
+    }
+    
+    return data;
+}
+
+function showAutoSaveIndicator() {
+    const indicator = document.getElementById('autoSaveStatus');
+    if (indicator) {
+        indicator.classList.add('show');
+        setTimeout(() => {
+            indicator.classList.remove('show');
+        }, 2000);
+    }
+}
+
+function redirectToTemplates() {
+    if (currentResumeId) {
+        sessionStorage.setItem('resumeToTheme', currentResumeId);
+        sessionStorage.setItem('returnToEditor', 'true');
+        window.location.href = `/templates?resume_id=${currentResumeId}`;
+    } else {
+        window.location.href = '/templates';
+    }
+}
+
+function goToNextStep() {
+    if (hasTheme && currentTheme && currentCategory) {
+        showCustomAlert(
+            'Proceed to PDF Preview',
+            'Your resume is ready. Would you like to preview and download the PDF?',
+            'info',
+            true,
+            async () => {
+                await saveResume();
+                window.location.href = `/resume/${currentResumeId}/pdf-preview`;
+            },
+            true
+        );
+    } else {
+        showCustomAlert(
+            'Select a Theme',
+            'Please select a theme for your resume first.',
+            'info',
+            true,
+            async () => {
+                await saveResume();
+                redirectToTemplates();
+            },
+            true
+        );
+    }
+}
+
+function initRealTimePreview() {
+    const allInputs = document.querySelectorAll('input, textarea, select');
+    allInputs.forEach(input => {
+        input.addEventListener('input', () => {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                updateLivePreview();
+            }, 800);
+        });
+        
+        input.addEventListener('change', () => {
+            updateLivePreview();
+        });
+    });
+    
+    const observer = new MutationObserver(() => {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+            updateLivePreview();
+        }, 800);
+    });
+    
+    const containers = document.querySelectorAll('.sortable-container');
+    containers.forEach(container => {
+        observer.observe(container, {
+            childList: true,
+            subtree: true,
+            attributes: true
+        });
+    });
+}
+
+function initMobilePreviewToggle() {
+    const toggleBtn = document.getElementById('mobilePreviewToggle');
+    const previewSidebar = document.getElementById('previewSidebar');
+    
+    if (!toggleBtn || !previewSidebar) return;
+    
+    toggleBtn.addEventListener('click', function() {
+        previewSidebar.classList.toggle('show');
+        
+        if (previewSidebar.classList.contains('show')) {
+            toggleBtn.innerHTML = '<i class="fas fa-eye-slash"></i><span>Hide Preview</span>';
+            if (window.innerWidth <= 768) {
+                document.body.style.overflow = 'hidden';
+            }
+        } else {
+            toggleBtn.innerHTML = '<i class="fas fa-eye"></i><span>Preview Resume</span>';
+            document.body.style.overflow = '';
+        }
+    });
+    
+    previewSidebar.addEventListener('click', function(e) {
+        if (e.target === previewSidebar && window.innerWidth <= 768) {
+            previewSidebar.classList.remove('show');
+            toggleBtn.innerHTML = '<i class="fas fa-eye"></i><span>Preview Resume</span>';
+            document.body.style.overflow = '';
+        }
+    });
+}
+
+async function checkForThemeFromTemplates() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const theme = urlParams.get('theme');
+    const category = urlParams.get('category');
+    
+    if (theme && category && currentResumeId) {
+        currentTheme = theme;
+        currentCategory = category;
+        hasTheme = true;
+        
+        const editorDiv = document.querySelector('[data-has-theme]');
+        if (editorDiv) {
+            editorDiv.setAttribute('data-has-theme', 'true');
+        }
+        
+        updateNextStepButton();
+        
+        try {
+            const response = await fetch(`/resume/${currentResumeId}/theme`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ theme, category })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                await updateLivePreview();
+                showCustomAlert('Theme Applied', `"${category === 'designed' ? 'Modern' : 'ATS-Friendly'} ${theme.split('_')[1]}" theme has been applied to your resume.`, 'success', false);
+                updateNextStepButton();
+            }
+        } catch (error) {
+            console.error('Failed to apply theme:', error);
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing editor...');
+    
+    initSectionAccordion();
+    checkForThemeFromTemplates();
+    initRealTimePreview();
+    initMobilePreviewToggle();
+    initAutoAdvance();
+    
+    updateAllSectionStatuses();
+    
+    setTimeout(() => {
+        updateLivePreview();
+    }, 500);
+    
+    const titleInput = document.getElementById('resumeTitle');
+    if (titleInput) {
+        titleInput.addEventListener('input', function() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                saveResume();
+                updateLivePreview();
+            }, 1000);
+        });
+    }
+    
+    if (typeof Sortable !== 'undefined') {
+        document.querySelectorAll('.sortable-container').forEach(container => {
+            new Sortable(container, {
+                handle: '.drag-handle',
+                animation: 150,
+                onEnd: function() {
+                    saveResume();
+                    updateLivePreview();
+                }
+            });
+        });
+    }
+    
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+    }
+    
+    const nextStepBtn = document.getElementById('nextStepBtn');
+    if (nextStepBtn) {
+        nextStepBtn.addEventListener('click', goToNextStep);
+    }
+    
+    const changeThemeBtn = document.getElementById('changeThemeBtn');
+    if (changeThemeBtn) {
+        changeThemeBtn.addEventListener('click', redirectToTemplates);
+    }
+    
+    updateNextStepButton();
+    
+    console.log('Resume editor initialized with real-time preview and auto-advance sections');
+});
+</script>
+{% endblock %}

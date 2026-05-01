@@ -1,0 +1,335 @@
+{% extends "base.html" %} {% block title %}Preview - {{ resume.title }}{%
+endblock %} {% block extra_css %}
+<style>
+  .preview-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .preview-toolbar {
+    background: var(--white);
+    border-radius: 15px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .preview-actions {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .preview-content {
+    background: var(--white);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  .preview-iframe {
+    width: 100%;
+    height: 900px;
+    border: none;
+  }
+
+  .zoom-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .loading-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 900px;
+    background: var(--gray-50);
+  }
+
+  .loading-preview i {
+    font-size: 2rem;
+    color: var(--primary);
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Custom Alert Modal */
+  .custom-alert {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+  }
+
+  .custom-alert.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .custom-alert-content {
+    background: var(--white);
+    border-radius: 15px;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.3s;
+  }
+
+  .custom-alert.show .custom-alert-content {
+    transform: scale(1);
+  }
+
+  .custom-alert-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .custom-alert-icon.success {
+    color: #10b981;
+  }
+
+  .custom-alert-icon.warning {
+    color: #f59e0b;
+  }
+
+  .custom-alert-icon.error {
+    color: #ef4444;
+  }
+
+  .custom-alert-icon.info {
+    color: var(--primary);
+  }
+
+  .custom-alert-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--gray-800);
+  }
+
+  .custom-alert-message {
+    color: var(--gray-600);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+
+  .custom-alert-buttons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+
+  .custom-alert-btn {
+    padding: 0.5rem 1.5rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+  }
+
+  .custom-alert-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+  }
+</style>
+{% endblock %} {% block page_title %}Resume Preview{% endblock %} {% block
+content %}
+<div class="preview-container">
+  <div class="preview-toolbar">
+    <div class="preview-info">
+      <h3>{{ resume.title }}</h3>
+      <p class="text-muted">
+        Theme: {{ resume.selected_theme|replace('_', ' ')|title }}
+      </p>
+    </div>
+    <div class="preview-actions">
+      <div class="zoom-controls">
+        <button class="btn-icon-sm" onclick="zoomOut()">
+          <i class="fas fa-search-minus"></i>
+        </button>
+        <span id="zoomLevel">100%</span>
+        <button class="btn-icon-sm" onclick="zoomIn()">
+          <i class="fas fa-search-plus"></i>
+        </button>
+        <button class="btn-icon-sm" onclick="resetZoom()">
+          <i class="fas fa-undo"></i>
+        </button>
+      </div>
+      <a
+        href="{{ url_for('edit_resume', resume_id=resume.id) }}"
+        class="btn-secondary"
+      >
+        <i class="fas fa-edit"></i> Edit
+      </a>
+      <a
+        href="{{ url_for('pdf_preview', resume_id=resume.id) }}"
+        class="btn-primary"
+      >
+        <i class="fas fa-file-pdf"></i> Export PDF
+      </a>
+    </div>
+  </div>
+
+  <div class="preview-content">
+    <div id="previewLoading" class="loading-preview" style="display: flex;">
+      <i class="fas fa-spinner"></i>
+      <span style="margin-left: 1rem;">Loading preview...</span>
+    </div>
+    <iframe
+      id="previewFrame"
+      class="preview-iframe"
+      style="display: none;"
+    ></iframe>
+  </div>
+</div>
+
+<!-- Custom Alert Modal -->
+<div id="customAlert" class="custom-alert">
+  <div class="custom-alert-content">
+    <div class="custom-alert-icon" id="alertIcon"></div>
+    <div class="custom-alert-title" id="alertTitle"></div>
+    <div class="custom-alert-message" id="alertMessage"></div>
+    <div class="custom-alert-buttons" id="alertButtons">
+      <button class="custom-alert-btn" id="alertConfirmBtn">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentZoom = 100;
+
+  function zoomIn() {
+    if (currentZoom < 150) {
+      currentZoom += 10;
+      updateZoom();
+    }
+  }
+
+  function zoomOut() {
+    if (currentZoom > 70) {
+      currentZoom -= 10;
+      updateZoom();
+    }
+  }
+
+  function resetZoom() {
+    currentZoom = 100;
+    updateZoom();
+  }
+
+  function updateZoom() {
+    const iframe = document.getElementById("previewFrame");
+    if (iframe) {
+      iframe.style.transform = `scale(${currentZoom / 100})`;
+      iframe.style.transformOrigin = "top center";
+      document.getElementById("zoomLevel").textContent = `${currentZoom}%`;
+    }
+  }
+
+  function showCustomAlert(title, message, type = 'info', showConfirm = true, onConfirm = null) {
+    const alertModal = document.getElementById('customAlert');
+    const alertIcon = document.getElementById('alertIcon');
+    const alertTitle = document.getElementById('alertTitle');
+    const alertMessage = document.getElementById('alertMessage');
+    const alertButtons = document.getElementById('alertButtons');
+    
+    let iconHtml = '';
+    let iconClass = '';
+    switch(type) {
+        case 'success':
+            iconHtml = '<i class="fas fa-check-circle"></i>';
+            iconClass = 'success';
+            break;
+        case 'warning':
+            iconHtml = '<i class="fas fa-exclamation-triangle"></i>';
+            iconClass = 'warning';
+            break;
+        case 'error':
+            iconHtml = '<i class="fas fa-times-circle"></i>';
+            iconClass = 'error';
+            break;
+        default:
+            iconHtml = '<i class="fas fa-info-circle"></i>';
+            iconClass = 'info';
+    }
+    
+    alertIcon.innerHTML = iconHtml;
+    alertIcon.className = `custom-alert-icon ${iconClass}`;
+    alertTitle.textContent = title;
+    alertMessage.textContent = message;
+    
+    alertButtons.innerHTML = '';
+    
+    const okBtn = document.createElement('button');
+    okBtn.textContent = showConfirm ? 'Confirm' : 'OK';
+    okBtn.className = 'custom-alert-btn';
+    okBtn.onclick = () => {
+      closeCustomAlert();
+      if (onConfirm) onConfirm();
+    };
+    alertButtons.appendChild(okBtn);
+    
+    alertModal.classList.add('show');
+  }
+
+  function closeCustomAlert() {
+    const alertModal = document.getElementById('customAlert');
+    alertModal.classList.remove('show');
+  }
+
+  function loadPreview() {
+    const resumeId = {{ resume.id }};
+    const loadingDiv = document.getElementById('previewLoading');
+    const iframe = document.getElementById('previewFrame');
+    const theme = '{{ resume.selected_theme }}';
+    const category = '{{ resume.theme_category }}';
+    
+    fetch(`/api/resume/${resumeId}/preview-theme?theme=${theme}&category=${category}&t=${Date.now()}`)
+      .then(response => {
+        if (response.ok) {
+          return response.text();
+        }
+        throw new Error('Failed to load preview');
+      })
+      .then(html => {
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        iframe.src = url;
+        iframe.style.display = 'block';
+        loadingDiv.style.display = 'none';
+      })
+      .catch(error => {
+        console.error('Failed to load preview:', error);
+        loadingDiv.innerHTML = `
+          <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+          <span style="margin-left: 1rem; color: #ef4444;">Failed to load preview. Please try again.</span>
+        `;
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    loadPreview();
+  });
+</script>
+{% endblock %}

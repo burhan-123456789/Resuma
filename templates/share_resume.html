@@ -1,0 +1,241 @@
+{% extends "base.html" %} {% block title %}Share Resume - {{ resume.title }}{%
+endblock %} {% block page_title %}Share Your Resume{% endblock %} {% block
+content %}
+<div class="share-container">
+  <div class="share-card">
+    <div class="share-header">
+      <i class="fas fa-share-alt fa-3x" style="color: var(--primary)"></i>
+      <h3>Share "{{ resume.title }}"</h3>
+      <p>Share this link with employers, recruiters, or on your portfolio</p>
+    </div>
+
+    <div class="share-link-section">
+      <label>Public Share Link</label>
+      <div class="link-container">
+        <input
+          type="text"
+          id="shareUrl"
+          value="{{ share_url }}"
+          readonly
+          class="share-input"
+        />
+        <button class="btn-primary" onclick="copyShareLink()">
+          <i class="fas fa-copy"></i> Copy
+        </button>
+      </div>
+      <p class="info-text">
+        <i class="fas fa-info-circle"></i>
+        Anyone with this link can view your resume. You can regenerate the link
+        at any time.
+      </p>
+    </div>
+
+    <div class="share-options">
+      <h4>Share via</h4>
+      <div class="social-share">
+        <a
+          href="https://twitter.com/intent/tweet?text=Check out my resume on Resuma!&url={{ share_url|urlencode }}"
+          target="_blank"
+          class="share-btn twitter"
+        >
+          <i class="fab fa-twitter"></i> Twitter
+        </a>
+        <a
+          href="https://www.linkedin.com/sharing/share-offsite/?url={{ share_url|urlencode }}"
+          target="_blank"
+          class="share-btn linkedin"
+        >
+          <i class="fab fa-linkedin"></i> LinkedIn
+        </a>
+        <a
+          href="mailto:?subject=My Resume&body=You can view my resume here: {{ share_url }}"
+          class="share-btn email"
+        >
+          <i class="fas fa-envelope"></i> Email
+        </a>
+      </div>
+    </div>
+
+    <div class="share-actions">
+      <a href="{{ url_for('dashboard') }}" class="btn-secondary"
+        >Back to Dashboard</a
+      >
+      <a
+        href="{{ url_for('pdf_preview', resume_id=resume.id) }}"
+        class="btn-primary"
+        >Download PDF</a
+      >
+    </div>
+  </div>
+
+  <div class="qr-code-section">
+    <div class="qr-card">
+      <h4>QR Code</h4>
+      <div id="qrcode" class="qr-container"></div>
+      <p>Scan to view resume on mobile</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .share-container {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .share-card,
+  .qr-card {
+    background: var(--white);
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .share-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .share-header h3 {
+    margin: 1rem 0 0.5rem;
+  }
+
+  .link-container {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+
+  .share-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 0.85rem;
+  }
+
+  .info-text {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    margin-top: 0.5rem;
+  }
+
+  .share-options {
+    margin: 2rem 0;
+  }
+
+  .share-options h4 {
+    margin-bottom: 1rem;
+  }
+
+  .social-share {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .share-btn {
+    flex: 1;
+    padding: 0.75rem;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 8px;
+    color: white;
+    transition: all 0.3s;
+  }
+
+  .share-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .share-btn.twitter {
+    background: #1da1f2;
+  }
+
+  .share-btn.linkedin {
+    background: #0077b5;
+  }
+
+  .share-btn.email {
+    background: #ea4335;
+  }
+
+  .share-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--gray-200);
+  }
+
+  .qr-section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .qr-card {
+    text-align: center;
+  }
+
+  .qr-card h4 {
+    margin-bottom: 1rem;
+  }
+
+  .qr-container {
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0;
+  }
+
+  .qr-container img {
+    max-width: 200px;
+    height: auto;
+  }
+
+  @media (max-width: 768px) {
+    .share-container {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+  function copyShareLink() {
+    const shareUrl = document.getElementById("shareUrl");
+    shareUrl.select();
+    document.execCommand("copy");
+
+    // Show notification
+    const notification = document.createElement("div");
+    notification.className = "alert alert-success";
+    notification.textContent = "Link copied to clipboard!";
+    notification.style.position = "fixed";
+    notification.style.top = "20px";
+    notification.style.right = "20px";
+    notification.style.zIndex = "1000";
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+
+  // Generate QR Code
+  document.addEventListener("DOMContentLoaded", function () {
+    const shareUrl = document.getElementById("shareUrl").value;
+    new QRCode(document.getElementById("qrcode"), {
+      text: shareUrl,
+      width: 200,
+      height: 200,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H,
+    });
+  });
+</script>
+{% endblock %}

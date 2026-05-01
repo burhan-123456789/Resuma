@@ -1,0 +1,187 @@
+{% extends "base.html" %} {% block title %}New Resume - Resuma{% endblock %} {%
+block page_title %}Create New Resume{% endblock %} {% block content %}
+<div class="new-resume-container">
+  <div class="form-card">
+    <form method="POST" class="new-resume-form" id="newResumeForm">
+      <div class="form-group">
+        <label for="title">Resume Title</label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          placeholder="e.g., Software Developer Resume 2024"
+          required
+        />
+        <small class="form-text">Give your resume a descriptive name</small>
+      </div>
+
+      <!-- Hidden fields for theme selection from templates page -->
+      <input type="hidden" id="selectedTheme" name="theme" value="" />
+      <input type="hidden" id="selectedCategory" name="category" value="" />
+
+      <div
+        class="selected-theme-info"
+        id="selectedThemeInfo"
+        style="display: none"
+      >
+        <div class="info-card">
+          <i class="fas fa-palette"></i>
+          <div>
+            <strong>Selected Template:</strong>
+            <span id="selectedThemeName"></span>
+          </div>
+          <button
+            type="button"
+            class="btn-change-theme"
+            onclick="changeTheme()"
+          >
+            <i class="fas fa-exchange-alt"></i> Change Template
+          </button>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Create Resume</button>
+        <a href="{{ url_for('dashboard') }}" class="btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .new-resume-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .form-card {
+    background: var(--white);
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-text {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin-top: 0.25rem;
+    display: block;
+  }
+
+  .selected-theme-info {
+    margin: 1.5rem 0;
+  }
+
+  .info-card {
+    background: linear-gradient(
+      135deg,
+      rgba(99, 102, 241, 0.1) 0%,
+      rgba(99, 102, 241, 0.05) 100%
+    );
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .info-card i {
+    font-size: 1.5rem;
+    color: var(--primary);
+  }
+
+  .info-card div {
+    flex: 1;
+  }
+
+  .info-card strong {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    margin-bottom: 0.25rem;
+  }
+
+  .info-card span {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .btn-change-theme {
+    padding: 0.5rem 1rem;
+    background: var(--white);
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+  }
+
+  .btn-change-theme:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+  }
+
+  .btn-secondary {
+    padding: 0.75rem 1.5rem;
+    background: var(--gray-200);
+    color: var(--gray-700);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+
+  .btn-secondary:hover {
+    background: var(--gray-300);
+  }
+</style>
+
+<script>
+  // Check for theme from URL parameters or session storage
+  document.addEventListener("DOMContentLoaded", function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    let theme = urlParams.get("theme");
+    let category = urlParams.get("category");
+
+    // If not in URL, check session storage
+    if (!theme) {
+      theme = sessionStorage.getItem("selectedTheme");
+      category = sessionStorage.getItem("selectedCategory");
+    }
+
+    if (theme && category) {
+      // Set hidden fields
+      document.getElementById("selectedTheme").value = theme;
+      document.getElementById("selectedCategory").value = category;
+
+      // Show selected theme info
+      const themeName = theme.split("_")[1];
+      const categoryName = category === "designed" ? "Modern" : "ATS-Friendly";
+      document.getElementById("selectedThemeName").textContent =
+        `${categoryName} ${themeName}`;
+      document.getElementById("selectedThemeInfo").style.display = "block";
+
+      // Clear session storage after using
+      sessionStorage.removeItem("selectedTheme");
+      sessionStorage.removeItem("selectedCategory");
+    }
+  });
+
+  function changeTheme() {
+    window.location.href = "{{ url_for('show_templates') }}";
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {{ resume_data.personal_info.full_name if resume_data.personal_info else
+      'Resume' }} - Resuma
+    </title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: #f5f5f5;
+      }
+
+      .public-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+        text-align: center;
+        position: relative;
+      }
+
+      .brand {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .brand i {
+        margin-right: 0.5rem;
+      }
+
+      .public-content {
+        max-width: 900px;
+        margin: 2rem auto;
+        background: white;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      .watermark {
+        text-align: center;
+        padding: 1rem;
+        font-size: 0.85rem;
+        color: #999;
+        border-top: 1px solid #eee;
+      }
+
+      @media print {
+        body {
+          background: white;
+        }
+
+        .public-header {
+          background: #333;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .watermark {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="public-header">
+      <div class="brand"><i class="fas fa-file-alt"></i> Resuma</div>
+    </div>
+
+    <div class="public-content">
+      {% if resume_data.personal_info %}
+      <div
+        style="
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 3rem 2rem;
+          text-align: center;
+        "
+      >
+        <h1 style="margin-bottom: 0.5rem">
+          {{ resume_data.personal_info.full_name }}
+        </h1>
+        {% if resume_data.personal_info.job_title %}
+        <p style="font-size: 1.1rem; opacity: 0.95">
+          {{ resume_data.personal_info.job_title }}
+        </p>
+        {% endif %}
+        <div
+          style="
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+          "
+        >
+          {% if resume_data.personal_info.email %}
+          <span>📧 {{ resume_data.personal_info.email }}</span>
+          {% endif %} {% if resume_data.personal_info.phone %}
+          <span>📱 {{ resume_data.personal_info.phone }}</span>
+          {% endif %} {% if resume_data.personal_info.location %}
+          <span>📍 {{ resume_data.personal_info.location }}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div style="padding: 2rem">
+        <!-- Summary -->
+        {% if resume_data.summaries %}
+        <div style="margin-bottom: 2rem">
+          <h2
+            style="
+              color: #667eea;
+              border-bottom: 2px solid #e0e0e0;
+              padding-bottom: 0.5rem;
+              margin-bottom: 1rem;
+            "
+          >
+            Professional Summary
+          </h2>
+          {% for summary in resume_data.summaries %}
+          <p>{{ summary.content }}</p>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Experience -->
+        {% if resume_data.experiences %}
+        <div style="margin-bottom: 2rem">
+          <h2
+            style="
+              color: #667eea;
+              border-bottom: 2px solid #e0e0e0;
+              padding-bottom: 0.5rem;
+              margin-bottom: 1rem;
+            "
+          >
+            Work Experience
+          </h2>
+          {% for exp in resume_data.experiences %}
+          <div style="margin-bottom: 1.5rem">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+                flex-wrap: wrap;
+              "
+            >
+              <h3 style="color: #333">{{ exp.position }}</h3>
+              <span style="color: #666; font-size: 0.85rem"
+                >{{ exp.start_date.strftime('%b %Y') if exp.start_date else ''
+                }} - {{ 'Present' if exp.current else (exp.end_date.strftime('%b
+                %Y') if exp.end_date else '') }}</span
+              >
+            </div>
+            <p style="font-weight: 600; margin: 0.25rem 0">
+              {{ exp.company }}{% if exp.location %} • {{ exp.location }}{%
+              endif %}
+            </p>
+            <p style="margin-top: 0.5rem">{{ exp.description }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Education -->
+        {% if resume_data.education %}
+        <div style="margin-bottom: 2rem">
+          <h2
+            style="
+              color: #667eea;
+              border-bottom: 2px solid #e0e0e0;
+              padding-bottom: 0.5rem;
+              margin-bottom: 1rem;
+            "
+          >
+            Education
+          </h2>
+          {% for edu in resume_data.education %}
+          <div style="margin-bottom: 1rem">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+                flex-wrap: wrap;
+              "
+            >
+              <h3 style="color: #333">
+                {{ edu.degree }}{% if edu.field_of_study %} in {{
+                edu.field_of_study }}{% endif %}
+              </h3>
+              <span style="color: #666; font-size: 0.85rem"
+                >{{ edu.start_date.strftime('%Y') if edu.start_date else '' }} -
+                {{ edu.end_date.strftime('%Y') if edu.end_date else 'Present'
+                }}</span
+              >
+            </div>
+            <p style="font-weight: 600">{{ edu.institution }}</p>
+            {% if edu.description %}
+            <p style="margin-top: 0.5rem">{{ edu.description }}</p>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Skills -->
+        {% if resume_data.skills %}
+        <div style="margin-bottom: 2rem">
+          <h2
+            style="
+              color: #667eea;
+              border-bottom: 2px solid #e0e0e0;
+              padding-bottom: 0.5rem;
+              margin-bottom: 1rem;
+            "
+          >
+            Skills
+          </h2>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem">
+            {% for skill in resume_data.skills %}
+            <span
+              style="
+                background: #f0f0f0;
+                padding: 0.5rem 1rem;
+                border-radius: 20px;
+                font-size: 0.9rem;
+              "
+              >{{ skill.name }}</span
+            >
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Projects -->
+        {% if resume_data.projects %}
+        <div style="margin-bottom: 2rem">
+          <h2
+            style="
+              color: #667eea;
+              border-bottom: 2px solid #e0e0e0;
+              padding-bottom: 0.5rem;
+              margin-bottom: 1rem;
+            "
+          >
+            Projects
+          </h2>
+          {% for project in resume_data.projects %}
+          <div style="margin-bottom: 1rem">
+            <h3>{{ project.name }}</h3>
+            {% if project.technologies %}
+            <p style="color: #666; font-size: 0.85rem">
+              {{ project.technologies }}
+            </p>
+            {% endif %}
+            <p style="margin-top: 0.5rem">{{ project.description }}</p>
+            {% if project.link %}
+            <a
+              href="{{ project.link }}"
+              style="color: #667eea; text-decoration: none"
+              >View Project →</a
+            >
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="watermark">
+      Created with Resuma - Professional Resume Builder
+    </div>
+  </body>
+</html>
