@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {{ resume_data.personal_info.full_name if resume_data.personal_info else
+      'Resume' }}
+    </title>
+    <style>
+      /* ATS-FRIENDLY - Ultra-Minimal */
+      body {
+        font-family: monospace;
+        font-size: 10pt;
+        line-height: 1.25;
+        color: #000;
+        background: #fff;
+        margin: 0.5in;
+      }
+
+      .resume {
+        max-width: 8.5in;
+      }
+
+      .name {
+        font-size: 16pt;
+        font-weight: bold;
+        margin-bottom: 2px;
+      }
+
+      .contact {
+        margin-bottom: 10px;
+      }
+
+      hr {
+        margin: 8px 0;
+      }
+
+      .section {
+        margin-bottom: 10px;
+      }
+
+      .section-title {
+        font-weight: bold;
+        text-decoration: underline;
+        margin-bottom: 5px;
+      }
+
+      .entry {
+        margin-bottom: 8px;
+      }
+
+      .title-line {
+        font-weight: bold;
+      }
+
+      .meta-line {
+        font-size: 9pt;
+      }
+
+      .desc {
+        margin-left: 15px;
+      }
+
+      .skills {
+        margin-left: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="resume">
+      {% if resume_data.personal_info %}
+      <div class="name">{{ resume_data.personal_info.full_name }}</div>
+      <div class="contact">
+        {{ resume_data.personal_info.email }}<br />
+        {{ resume_data.personal_info.phone }}<br />
+        {{ resume_data.personal_info.address }}
+      </div>
+      <hr />
+      {% endif %} {% if resume_data.summaries %}
+      <div class="section">
+        <div class="section-title">SUMMARY</div>
+        {% for summary in resume_data.summaries %}
+        <div>{{ summary.content }}</div>
+        {% endfor %}
+      </div>
+      {% endif %} {% if resume_data.experiences %}
+      <div class="section">
+        <div class="section-title">EXPERIENCE</div>
+        {% for exp in resume_data.experiences %}
+        <div class="entry">
+          <div class="title-line">{{ exp.position }} - {{ exp.company }}</div>
+          <div class="meta-line">
+            {{ exp.start_date.strftime('%b %Y') if exp.start_date else '' }} to
+            {{ 'Present' if exp.current else (exp.end_date.strftime('%b %Y') if
+            exp.end_date else '') }}
+          </div>
+          <div class="desc">{{ exp.description }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% if resume_data.education %}
+      <div class="section">
+        <div class="section-title">EDUCATION</div>
+        {% for edu in resume_data.education %}
+        <div class="entry">
+          <div class="title-line">{{ edu.degree }}</div>
+          <div class="meta-line">
+            {{ edu.institution }} ({{ edu.start_date.strftime('%Y') if
+            edu.start_date else '' }}-{{ edu.end_date.strftime('%Y') if
+            edu.end_date else 'Present' }})
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% if resume_data.skills %}
+      <div class="section">
+        <div class="section-title">SKILLS</div>
+        <div class="skills">
+          {% for skill in resume_data.skills %} {{ skill.name }}{% if not
+          loop.last %}, {% endif %} {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </body>
+</html>

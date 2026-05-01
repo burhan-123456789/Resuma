@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {{ resume_data.personal_info.full_name if resume_data.personal_info else
+      'Resume' }}
+    </title>
+    <style>
+      /* ATS-FRIENDLY - Chronological Emphasis */
+      body {
+        font-family: "Verdana", "Arial", sans-serif;
+        font-size: 10pt;
+        line-height: 1.4;
+        background: white;
+        color: black;
+      }
+
+      .resume {
+        max-width: 8.5in;
+        margin: 0.4in auto;
+      }
+
+      .header {
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #000;
+      }
+
+      .name {
+        font-size: 22pt;
+        font-weight: bold;
+      }
+
+      .details {
+        font-size: 9pt;
+        margin-top: 5px;
+      }
+
+      .section {
+        margin-bottom: 12px;
+      }
+
+      .section-title {
+        font-weight: bold;
+        background: #eee;
+        padding: 2px 5px;
+        margin-bottom: 8px;
+        font-size: 11pt;
+      }
+
+      .chrono-item {
+        margin-bottom: 10px;
+        padding-left: 10px;
+      }
+
+      .chrono-header {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        font-weight: bold;
+      }
+
+      .chrono-sub {
+        font-style: italic;
+        margin: 2px 0;
+      }
+
+      .chrono-desc {
+        margin-top: 4px;
+      }
+
+      @media print {
+        .section-title {
+          background: none;
+          font-weight: bold;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="resume">
+      {% if resume_data.personal_info %}
+      <div class="header">
+        <div class="name">{{ resume_data.personal_info.full_name }}</div>
+        <div class="details">
+          {{ resume_data.personal_info.job_title if
+          resume_data.personal_info.job_title else '' }}<br />
+          {{ resume_data.personal_info.email }} | {{
+          resume_data.personal_info.phone }}
+        </div>
+      </div>
+      {% endif %} {% if resume_data.summaries %}
+      <div class="section">
+        <div class="section-title">Professional Summary</div>
+        {% for summary in resume_data.summaries %}
+        <div>{{ summary.content }}</div>
+        {% endfor %}
+      </div>
+      {% endif %} {% if resume_data.experiences %}
+      <div class="section">
+        <div class="section-title">Employment History</div>
+        {% for exp in resume_data.experiences|sort(attribute='start_date',
+        reverse=true) %}
+        <div class="chrono-item">
+          <div class="chrono-header">
+            <span>{{ exp.position }}</span>
+            <span
+              >{{ exp.start_date.strftime('%Y') if exp.start_date else '' }} -
+              {{ 'Present' if exp.current else (exp.end_date.strftime('%Y') if
+              exp.end_date else '') }}</span
+            >
+          </div>
+          <div class="chrono-sub">
+            {{ exp.company }}{% if exp.location %} • {{ exp.location }}{% endif
+            %}
+          </div>
+          <div class="chrono-desc">{{ exp.description }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% if resume_data.education %}
+      <div class="section">
+        <div class="section-title">Education</div>
+        {% for edu in resume_data.education|sort(attribute='start_date',
+        reverse=true) %}
+        <div class="chrono-item">
+          <div class="chrono-header">
+            <span>{{ edu.degree }}</span>
+            <span
+              >{{ edu.start_date.strftime('%Y') if edu.start_date else '' }} -
+              {{ edu.end_date.strftime('%Y') if edu.end_date else 'Present'
+              }}</span
+            >
+          </div>
+          <div class="chrono-sub">{{ edu.institution }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% if resume_data.skills %}
+      <div class="section">
+        <div class="section-title">Technical Skills</div>
+        <div>
+          {% for skill in resume_data.skills %} {{ skill.name }}{% if not
+          loop.last %} | {% endif %} {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </body>
+</html>
