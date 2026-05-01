@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Password Reset Successful - Resuma</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.6;
+        background: #f4f6f9;
+      }
+
+      .email-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .email-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        padding: 2rem;
+        text-align: center;
+      }
+
+      .logo {
+        font-size: 2rem;
+        font-weight: bold;
+        color: white;
+      }
+
+      .email-content {
+        padding: 2rem;
+      }
+
+      .success-icon {
+        text-align: center;
+        font-size: 4rem;
+        margin-bottom: 1rem;
+      }
+
+      .greeting {
+        font-size: 1.25rem;
+        color: #333;
+        margin-bottom: 1rem;
+        text-align: center;
+      }
+
+      .message {
+        color: #555;
+        margin-bottom: 1rem;
+        line-height: 1.6;
+        text-align: center;
+      }
+
+      .button {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-decoration: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        margin: 1rem 0;
+        text-align: center;
+      }
+
+      .tip-box {
+        background: #f0fdf4;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+        text-align: center;
+      }
+
+      .email-footer {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 0.75rem;
+        color: #888;
+      }
+
+      @media (max-width: 600px) {
+        .email-container {
+          margin: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div style="padding: 2rem 1rem">
+      <div class="email-container">
+        <div class="email-header">
+          <div class="logo">✅ Resuma</div>
+          <p style="color: rgba(255, 255, 255, 0.9); margin-top: 0.5rem">
+            Password Updated
+          </p>
+        </div>
+
+        <div class="email-content">
+          <div class="success-icon">🔒✨</div>
+
+          <div class="greeting">
+            Password Reset Successful, {{ user.full_name }}!
+          </div>
+
+          <div class="message">
+            Your Resuma account password has been successfully changed.
+          </div>
+
+          <div class="message">
+            You can now log in with your new password and continue building your
+            professional resume.
+          </div>
+
+          <div style="text-align: center">
+            <a
+              href="{{ app_url }}"
+              class="button"
+              style="color: white; display: inline-block"
+            >
+              🚀 Log In to Your Account
+            </a>
+          </div>
+
+          <div class="tip-box">
+            <strong>💡 Pro Tip:</strong> For better security, consider enabling
+            two-factor authentication and using a password manager.
+          </div>
+
+          <div class="message" style="font-size: 0.85rem; margin-top: 1rem">
+            <strong>⚠️ Didn't make this change?</strong> If you did not reset
+            your password, please contact our support team immediately to secure
+            your account.
+          </div>
+        </div>
+
+        <div class="email-footer">
+          <p>&copy; 2024 Resuma. All rights reserved.</p>
+          <p style="margin-top: 0.5rem">
+            Keep your resume updated and stand out!
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
