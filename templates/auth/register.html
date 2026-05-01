@@ -1,0 +1,435 @@
+{% extends "base.html" %} {% block auth_content %}
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="logo-large">
+        <i class="fas fa-file-alt"></i>
+        <h2>Resuma</h2>
+      </div>
+      <h3>Create an Account</h3>
+      <p>Start building professional resumes today</p>
+    </div>
+
+    <form method="POST" class="auth-form" id="registerForm">
+      <div class="form-group">
+        <label for="full_name">Full Name</label>
+        <div class="input-group">
+          <i class="fas fa-user input-icon"></i>
+          <input
+            type="text"
+            id="full_name"
+            name="full_name"
+            required
+            placeholder="John Doe"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <div class="input-group">
+          <i class="fas fa-envelope input-icon"></i>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            placeholder="you@example.com"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-group password-group">
+          <i class="fas fa-lock input-icon"></i>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            placeholder="Create a password"
+          />
+          <button type="button" class="toggle-password" data-target="password">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+        <div class="password-rules">
+          <small>Password must contain:</small>
+          <ul>
+            <li id="rule-length">✓ At least 8 characters</li>
+            <li id="rule-upper">✓ One uppercase letter</li>
+            <li id="rule-lower">✓ One lowercase letter</li>
+            <li id="rule-number">✓ One number</li>
+            <li id="rule-special">✓ One special character</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirm_password">Confirm Password</label>
+        <div class="input-group password-group">
+          <i class="fas fa-lock input-icon"></i>
+          <input
+            type="password"
+            id="confirm_password"
+            name="confirm_password"
+            required
+            placeholder="Confirm your password"
+          />
+          <button
+            type="button"
+            class="toggle-password"
+            data-target="confirm_password"
+          >
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Fixed Checkbox Section -->
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" required />
+          <span class="checkbox-text"
+            >I agree to the
+            <a href="#" class="terms-link">Terms of Service</a> and
+            <a href="#" class="terms-link">Privacy Policy</a></span
+          >
+        </label>
+      </div>
+
+      <button type="submit" class="btn-primary btn-block">Sign Up</button>
+    </form>
+
+    <div class="auth-footer">
+      <p>
+        Already have an account?
+        <a href="{{ url_for('auth.login') }}">Sign in</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1rem;
+  }
+
+  .auth-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  }
+
+  .auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .logo-large {
+    margin-bottom: 1.5rem;
+  }
+
+  .logo-large i {
+    font-size: 3rem;
+    color: var(--primary);
+  }
+
+  .logo-large h2 {
+    margin-top: 0.5rem;
+    color: var(--gray-800);
+  }
+
+  .auth-header h3 {
+    margin-bottom: 0.5rem;
+    color: var(--gray-800);
+  }
+
+  .auth-header p {
+    color: var(--gray-500);
+  }
+
+  /* Form Groups */
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    font-size: 0.9rem;
+  }
+
+  /* Input Group Styling */
+  .input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-group .input-icon {
+    position: absolute;
+    left: 1rem;
+    color: var(--gray-400);
+    font-size: 1rem;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .input-group input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+    background: var(--white);
+  }
+
+  .input-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  /* Password Group Specific */
+  .password-group {
+    position: relative;
+  }
+
+  .password-group .toggle-password {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--gray-400);
+    cursor: pointer;
+    padding: 0;
+    font-size: 1rem;
+    z-index: 1;
+    transition: color 0.3s;
+  }
+
+  .password-group .toggle-password:hover {
+    color: var(--primary);
+  }
+
+  /* Password Rules */
+  .password-rules {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: var(--gray-50);
+    border-radius: 8px;
+  }
+
+  .password-rules small {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--gray-600);
+    font-weight: 500;
+  }
+
+  .password-rules ul {
+    margin: 0;
+    padding-left: 1rem;
+    list-style: none;
+  }
+
+  .password-rules li {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin: 0.25rem 0;
+    transition: color 0.3s;
+  }
+
+  .password-rules li.valid {
+    color: var(--secondary);
+    text-decoration: line-through;
+  }
+
+  .password-rules li.invalid {
+    color: var(--danger);
+  }
+
+  /* Checkbox Group - Fixed Styling */
+  .checkbox-group {
+    margin: 1.5rem 0;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--gray-600);
+    line-height: 1.4;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .checkbox-text {
+    flex: 1;
+  }
+
+  .terms-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+
+  .terms-link:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+  }
+
+  /* Button */
+  .btn-primary {
+    background: linear-gradient(
+      135deg,
+      var(--primary) 0%,
+      var(--primary-dark) 100%
+    );
+    color: var(--white);
+    border: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  /* Auth Footer */
+  .auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--gray-200);
+  }
+
+  .auth-footer p {
+    color: var(--gray-600);
+  }
+
+  .auth-footer a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .auth-footer a:hover {
+    text-decoration: underline;
+  }
+
+  /* Alert Styles */
+  .alert {
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    position: relative;
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .alert-success {
+    background: #d1fae5;
+    color: #065f46;
+    border-left: 4px solid var(--secondary);
+  }
+
+  .alert-danger {
+    background: #fee2e2;
+    color: #991b1b;
+    border-left: 4px solid var(--danger);
+  }
+
+  .alert-warning {
+    background: #fed7aa;
+    color: #92400e;
+    border-left: 4px solid var(--warning);
+  }
+
+  .alert-info {
+    background: #dbeafe;
+    color: #1e40af;
+    border-left: 4px solid var(--info);
+  }
+
+  .alert-dismissible {
+    position: relative;
+    padding-right: 2.5rem;
+  }
+
+  .alert-dismissible .close {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.6;
+  }
+
+  .alert-dismissible .close:hover {
+    opacity: 1;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .auth-card {
+      padding: 1.5rem;
+    }
+
+    .checkbox-label {
+      font-size: 0.8rem;
+    }
+  }
+</style>
+{% endblock %}

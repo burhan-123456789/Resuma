@@ -1,0 +1,686 @@
+{% extends "base.html" %} {% block title %}Security Settings - Resuma{% endblock
+%} {% block page_title %}Security Settings{% endblock %} {% block content %}
+<div class="security-container">
+  <div class="security-grid">
+    <!-- Two-Factor Authentication Card -->
+    <div class="security-card">
+      <div class="card-header">
+        <i class="fas fa-mobile-alt"></i>
+        <h3>Two-Factor Authentication</h3>
+      </div>
+      <div class="card-body">
+        <p>
+          Add an extra layer of security to your account by requiring a
+          verification code in addition to your password.
+        </p>
+
+        <div class="security-status">
+          <div class="status-badge inactive">
+            <i class="fas fa-shield-alt"></i> Not Enabled
+          </div>
+        </div>
+
+        <button
+          class="btn-secondary"
+          onclick="show2FAModal()"
+          disabled
+          style="opacity: 0.6; cursor: not-allowed"
+        >
+          <i class="fas fa-lock"></i> Coming Soon
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Sessions Card -->
+    <div class="security-card">
+      <div class="card-header">
+        <i class="fas fa-desktop"></i>
+        <h3>Active Sessions</h3>
+      </div>
+      <div class="card-body">
+        <p>Manage where you're currently logged in.</p>
+
+        <div class="sessions-list">
+          <div class="session-item current">
+            <div class="session-info">
+              <i class="fas fa-chrome"></i>
+              <div class="session-details">
+                <strong>Current Session</strong>
+                <span>Chrome on Windows</span>
+                <small>Active now</small>
+              </div>
+            </div>
+            <div class="session-badge">Current</div>
+          </div>
+
+          <!-- Other sessions would appear here dynamically -->
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.manage_sessions') }}">
+          <button type="submit" class="btn-secondary">
+            <i class="fas fa-sign-out-alt"></i> Log Out All Other Devices
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Login History Card -->
+    <div class="security-card">
+      <div class="card-header">
+        <i class="fas fa-history"></i>
+        <h3>Recent Login Activity</h3>
+      </div>
+      <div class="card-body">
+        <div class="login-history">
+          <div class="history-item">
+            <div class="history-icon">
+              <i class="fas fa-check-circle success"></i>
+            </div>
+            <div class="history-details">
+              <strong>Successful Login</strong>
+              <span>Chrome on Windows</span>
+              <small
+                >{{ user.updated_at.strftime('%B %d, %Y at %I:%M %p') if
+                user.updated_at else 'Just now' }}</small
+              >
+            </div>
+            <div class="history-location">
+              <i class="fas fa-map-marker-alt"></i> Current Session
+            </div>
+          </div>
+
+          <div class="history-item">
+            <div class="history-icon">
+              <i class="fas fa-check-circle success"></i>
+            </div>
+            <div class="history-details">
+              <strong>Successful Login</strong>
+              <span>Chrome on Windows</span>
+              <small
+                >{{ user.created_at.strftime('%B %d, %Y at %I:%M %p') }}</small
+              >
+            </div>
+            <div class="history-location">
+              <i class="fas fa-map-marker-alt"></i> Unknown
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-secondary" onclick="showLoginHistory()">
+          <i class="fas fa-download"></i> View Full History
+        </button>
+      </div>
+    </div>
+
+    <!-- Security Notifications Card -->
+    <div class="security-card">
+      <div class="card-header">
+        <i class="fas fa-bell"></i>
+        <h3>Security Notifications</h3>
+      </div>
+      <div class="card-body">
+        <div class="notification-settings">
+          <div class="setting-item">
+            <div class="setting-info">
+              <i class="fas fa-envelope"></i>
+              <div>
+                <strong>Email Alerts</strong>
+                <span>Receive email notifications for new logins</span>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" checked disabled />
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <i class="fas fa-bell"></i>
+              <div>
+                <strong>Login Alerts</strong>
+                <span>Get notified when someone logs into your account</span>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" checked disabled />
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <i class="fas fa-key"></i>
+              <div>
+                <strong>Password Change Alerts</strong>
+                <span>Receive confirmation when password is changed</span>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" checked disabled />
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+
+        <small class="text-muted">
+          <i class="fas fa-info-circle"></i> Notification settings are currently
+          managed by system defaults
+        </small>
+      </div>
+    </div>
+
+    <!-- API Access Card -->
+    <div class="security-card">
+      <div class="card-header">
+        <i class="fas fa-code"></i>
+        <h3>API Access</h3>
+      </div>
+      <div class="card-body">
+        <p>Manage API keys for third-party applications.</p>
+
+        <div class="api-keys-list">
+          <div class="no-keys">
+            <i class="fas fa-key"></i>
+            <p>No API keys generated yet</p>
+          </div>
+        </div>
+
+        <button
+          class="btn-secondary"
+          onclick="showAPIModal()"
+          disabled
+          style="opacity: 0.6; cursor: not-allowed"
+        >
+          <i class="fas fa-plus"></i> Generate API Key (Coming Soon)
+        </button>
+      </div>
+    </div>
+
+    <!-- Security Tips Card -->
+    <div class="security-card tips-card">
+      <div class="card-header">
+        <i class="fas fa-lightbulb"></i>
+        <h3>Security Tips</h3>
+      </div>
+      <div class="card-body">
+        <ul class="tips-list">
+          <li>
+            <i class="fas fa-check-circle"></i>
+            <span>Use a strong, unique password for your account</span>
+          </li>
+          <li>
+            <i class="fas fa-check-circle"></i>
+            <span>Never share your password with anyone</span>
+          </li>
+          <li>
+            <i class="fas fa-check-circle"></i>
+            <span>Enable two-factor authentication when available</span>
+          </li>
+          <li>
+            <i class="fas fa-check-circle"></i>
+            <span>Always log out from shared computers</span>
+          </li>
+          <li>
+            <i class="fas fa-check-circle"></i>
+            <span>Keep your recovery email address up to date</span>
+          </li>
+          <li>
+            <i class="fas fa-check-circle"></i>
+            <span>Regularly review your login history</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .security-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .security-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .security-card {
+    background: var(--white);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s;
+  }
+
+  .security-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .card-header i {
+    font-size: 1.5rem;
+    color: var(--primary);
+  }
+
+  .card-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--gray-800);
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
+
+  .card-body p {
+    color: var(--gray-600);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  /* Security Status */
+  .security-status {
+    margin: 1rem 0;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .status-badge.active {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .status-badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  /* Sessions List */
+  .sessions-list {
+    margin-bottom: 1rem;
+  }
+
+  .session-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--gray-50);
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+  }
+
+  .session-item.current {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #bfdbfe;
+  }
+
+  .session-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .session-info i {
+    font-size: 1.5rem;
+    color: var(--primary);
+  }
+
+  .session-details {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .session-details strong {
+    color: var(--gray-800);
+    font-size: 0.9rem;
+  }
+
+  .session-details span {
+    color: var(--gray-600);
+    font-size: 0.8rem;
+  }
+
+  .session-details small {
+    color: var(--gray-500);
+    font-size: 0.7rem;
+  }
+
+  .session-badge {
+    background: var(--primary);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  /* Login History */
+  .login-history {
+    margin-bottom: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .history-icon i {
+    font-size: 1.25rem;
+  }
+
+  .history-icon i.success {
+    color: #10b981;
+  }
+
+  .history-icon i.danger {
+    color: #ef4444;
+  }
+
+  .history-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .history-details strong {
+    font-size: 0.85rem;
+    color: var(--gray-800);
+  }
+
+  .history-details span {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+  }
+
+  .history-details small {
+    font-size: 0.7rem;
+    color: var(--gray-500);
+  }
+
+  .history-location {
+    font-size: 0.7rem;
+    color: var(--gray-500);
+  }
+
+  .history-location i {
+    margin-right: 0.25rem;
+  }
+
+  /* Notification Settings */
+  .notification-settings {
+    margin-bottom: 1rem;
+  }
+
+  .setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .setting-item:last-child {
+    border-bottom: none;
+  }
+
+  .setting-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .setting-info i {
+    font-size: 1.25rem;
+    color: var(--primary);
+  }
+
+  .setting-info div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .setting-info strong {
+    font-size: 0.9rem;
+    color: var(--gray-800);
+  }
+
+  .setting-info span {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+  }
+
+  /* Toggle Switch */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+  }
+
+  input:checked + .slider {
+    background-color: var(--primary);
+  }
+
+  input:focus + .slider {
+    box-shadow: 0 0 1px var(--primary);
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(26px);
+  }
+
+  .slider.round {
+    border-radius: 34px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+
+  /* API Keys */
+  .api-keys-list {
+    margin-bottom: 1rem;
+    min-height: 100px;
+  }
+
+  .no-keys {
+    text-align: center;
+    padding: 2rem;
+    color: var(--gray-500);
+  }
+
+  .no-keys i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  /* Security Tips */
+  .tips-card {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  }
+
+  .tips-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .tips-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--gray-700);
+  }
+
+  .tips-list li i {
+    color: #10b981;
+    font-size: 1rem;
+  }
+
+  .text-muted {
+    margin-top: 1rem;
+    display: block;
+    color: var(--gray-500);
+    font-size: 0.75rem;
+  }
+
+  .btn-secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    width: 100%;
+  }
+
+  .btn-secondary:hover {
+    background: var(--gray-300);
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 768px) {
+    .security-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .session-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .session-badge {
+      align-self: flex-start;
+    }
+
+    .history-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .history-location {
+      align-self: flex-start;
+    }
+  }
+
+  /* Custom scrollbar */
+  .login-history::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .login-history::-webkit-scrollbar-track {
+    background: var(--gray-200);
+    border-radius: 3px;
+  }
+
+  .login-history::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 3px;
+  }
+</style>
+
+<script>
+  function show2FAModal() {
+    showFlash("Two-factor authentication is coming soon!", "info");
+  }
+
+  function showLoginHistory() {
+    showFlash("Full login history feature is coming soon!", "info");
+  }
+
+  function showAPIModal() {
+    showFlash("API access feature is coming soon!", "info");
+  }
+
+  // Add time ago functionality
+  function timeSince(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + " years ago";
+
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + " months ago";
+
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + " days ago";
+
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + " hours ago";
+
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + " minutes ago";
+
+    return Math.floor(seconds) + " seconds ago";
+  }
+
+  // Update timestamps dynamically
+  document.addEventListener("DOMContentLoaded", function () {
+    const timestamps = document.querySelectorAll(".timestamp");
+    timestamps.forEach((timestamp) => {
+      const date = new Date(timestamp.dataset.date);
+      timestamp.textContent = timeSince(date);
+    });
+  });
+</script>
+{% endblock %}

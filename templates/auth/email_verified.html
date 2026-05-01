@@ -1,0 +1,50 @@
+{% extends "base.html" %} {% block auth_content %}
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="logo-large">
+        <i class="fas fa-file-alt"></i>
+        <h2>Resuma</h2>
+      </div>
+      <h3>Email Verified Successfully!</h3>
+    </div>
+
+    <div class="success-message">
+      <i
+        class="fas fa-check-circle fa-4x"
+        style="color: var(--secondary); margin-bottom: 1rem"
+      ></i>
+      <p>
+        Your email has been verified. You can now log in to your account and
+        start creating professional resumes.
+      </p>
+    </div>
+
+    <div class="auth-footer">
+      <a
+        href="{{ url_for('auth.login') }}"
+        class="btn-primary btn-block"
+        style="text-align: center; display: block"
+      >
+        Proceed to Login
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .success-message {
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border-radius: 10px;
+    margin: 1rem 0;
+  }
+
+  .btn-block {
+    width: 100%;
+    padding: 0.75rem;
+    text-decoration: none;
+  }
+</style>
+{% endblock %}

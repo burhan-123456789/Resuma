@@ -1,0 +1,62 @@
+{% extends "base.html" %} {% block auth_content %}
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="logo-large">
+        <i class="fas fa-file-alt"></i>
+        <h2>Resuma</h2>
+      </div>
+      <h3>Verify Your Email Address</h3>
+      <p>We've sent a verification link to your email address</p>
+    </div>
+
+    <div class="verification-message">
+      <i
+        class="fas fa-envelope-open-text fa-3x"
+        style="color: var(--primary); margin-bottom: 1rem"
+      ></i>
+      <p>
+        Please check your inbox at <strong>{{ user.email }}</strong> and click
+        the verification link to activate your account.
+      </p>
+      <p class="text-muted" style="margin-top: 1rem; font-size: 0.85rem">
+        Didn't receive the email? Check your spam folder or request a new
+        verification link.
+      </p>
+    </div>
+
+    <div class="auth-footer">
+      <a
+        href="{{ url_for('auth.resend_verification') }}"
+        class="btn-secondary btn-block"
+        style="text-align: center; display: block"
+      >
+        Resend Verification Email
+      </a>
+      <p style="margin-top: 1rem">
+        <a href="{{ url_for('auth.login') }}">Back to Login</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .verification-message {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: var(--gray-50);
+    border-radius: 10px;
+    margin: 1rem 0;
+  }
+
+  .text-muted {
+    color: var(--gray-500);
+  }
+
+  .btn-block {
+    width: 100%;
+    padding: 0.75rem;
+    text-decoration: none;
+  }
+</style>
+{% endblock %}
